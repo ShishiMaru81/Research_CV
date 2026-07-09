@@ -21,12 +21,18 @@ This is an application-plus-insight contribution with three first-class layers:
 - Week 10: Preprint and submission.
 
 ## Running Steps (high level)
-1. Build manifest: python -m src.build_manifest
-2. Deduplicate: python -m src.dedup
-3. In-dataset baselines: python -m run_indataset
-4. Cross-dataset transfer: python -m run_crossdataset
-5. Diagnosis: python -m run_diagnosis
-6. Figures: python -m make_figures
+1. Build manifest: `python -m src.build_manifest`
+2. Deduplicate: `python -m src.dedup`
+3. Train (Kaggle GPU): `python -m src.train --model mobilenetv2_100 --train_datasets riceleafbd --seed 42`
+4. Evaluate: `python -m src.eval --checkpoint <path.pth> --eval_dataset riceleafbd`
+5. In-dataset baselines: `python -m run_indataset`
+6. Cross-dataset transfer: `python -m run_crossdataset`
+7. Diagnosis: `python -m run_diagnosis`
+8. Figures: `python -m make_figures`
+
+## Kaggle
+See `notebooks/kaggle_week3.md` for the GPU notebook cells.
+Frozen manifest is tracked at `artifacts/manifest.csv` (copy into `results/manifest.csv` on Kaggle).
 
 ## Notes
 - Keep only original images (exclude pre-augmented copies).

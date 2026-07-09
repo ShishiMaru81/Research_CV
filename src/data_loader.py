@@ -118,6 +118,20 @@ def _assert_identical_mapping(train_classes: list[str], eval_classes: list[str])
         )
 
 
+def _apply_path_remap(manifest: pd.DataFrame, path_remap: tuple[str, str] | None) -> pd.DataFrame:
+    if path_remap is None:
+        return manifest
+    old, new = path_remap
+    remapped = manifest.copy()
+    remapped["image_path"] = (
+        remapped["image_path"]
+        .astype(str)
+        .str.replace("\\", "/", regex=False)
+        .str.replace(old.replace("\\", "/"), new.replace("\\", "/"), regex=False)
+    )
+    return remapped
+
+
 def make_loaders(
     train_datasets: list[str],
     eval_dataset: str,
@@ -127,6 +141,8 @@ def make_loaders(
     aug_pipeline: A.Compose | None = None,
     return_class_weights: bool = False,
     manifest_path: str | None = None,
+    verify_images: bool = False,
+    path_remap: tuple[str, str] | None = None,
 ) -> tuple[DataLoader, DataLoader, DataLoader, dict[str, Any]]:
     config = load_config()
     resolved_manifest = (
@@ -135,6 +151,7 @@ def make_loaders(
         else Path(config["results_root"]) / "manifest.csv"
     )
     manifest = pd.read_csv(resolved_manifest)
+    manifest = _apply_path_remap(manifest, path_remap)
 
     required = {"image_path", "dataset", "mapped_class", "split", "is_duplicate"}
     missing = required - set(manifest.columns)
@@ -171,15 +188,22 @@ def make_loaders(
 
     _assert_no_leakage(train_rows, eval_rows)
     _assert_identical_mapping(
-        sorted(train_rows["mapped_class"].unique().tolist()), sorted(eval_rows["mapped_class"].unique().tolist())
+        sorted(train_rows["mapped_class"].unique().tolist()),
+        sorted(eval_rows["mapped_class"].unique().tolist()),
     )
 
     train_transform = aug_pipeline if aug_pipeline is not None else default_train_transform(image_size)
     eval_transform = default_eval_transform(image_size)
 
-    train_dataset = ManifestImageDataset(train_rows, class_to_index, train_transform, verify_images=True)
-    val_dataset = ManifestImageDataset(val_rows, class_to_index, eval_transform, verify_images=True)
-    eval_dataset_obj = ManifestImageDataset(eval_rows, class_to_index, eval_transform, verify_images=True)
+    train_dataset = ManifestImageDataset(
+        train_rows, class_to_index, train_transform, verify_images=verify_images
+    )
+    val_dataset = ManifestImageDataset(
+        val_rows, class_to_index, eval_transform, verify_images=verify_images
+    )
+    eval_dataset_obj = ManifestImageDataset(
+        eval_rows, class_to_index, eval_transform, verify_images=verify_images
+    )
 
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=0)
     val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, num_workers=0)
