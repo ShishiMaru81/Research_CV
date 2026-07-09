@@ -1,0 +1,10 @@
+data/
+checkpoints/
+results/
+__pycache__/
+*.pth
+*.pyc
+.DS_Store
+*.pt
+*.bin
+*.onnx

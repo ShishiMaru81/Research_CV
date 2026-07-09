@@ -1,0 +1,15 @@
+This is a research codebase for a cross-dataset generalization study of rice leaf disease classification across three Bangladeshi datasets: RiceLeafBD, Dhan-Shomadhan, and the BRRI Rice Leaf Disease and Pest dataset.
+
+CONTRIBUTION (guides every design decision): This is an application-plus-insight study, not a new method. Three layers, all first-class: (1) a cross-dataset TRANSFER benchmark and the generalization gap; (2) a DIAGNOSIS of why the gap exists (Grad-CAM attention + a background-confound experiment); (3) MITIGATION (augmentation, leave-one-dataset-out training).
+
+CONVENTIONS:
+- Python 3.10+, PyTorch, and timm for pretrained models (mobilenetv2_100, efficientnet_b0, resnet50).
+- Seed ALL randomness (random, numpy, torch, torch.cuda; set torch.backends.cudnn.deterministic=True) via one set_seed(seed) util in src/utils.py. Call it at the start of every run.
+- Config-driven: a single config.yaml holds paths, model name, dataset(s), hyperparameters, seed. No hardcoded paths in logic; read DATA_ROOT and RESULTS_ROOT from config with env-var fallback.
+- Must run on free Google Colab / Kaggle GPU. Keep image size 224 and batch size modest (32).
+- A unified manifest CSV is the single source of truth for all data. Columns: image_path, dataset, original_class, mapped_class, background, split, is_duplicate.
+- Save outputs under results/ with descriptive names including dataset + model + seed.
+- Metrics via scikit-learn: accuracy, macro-F1, per-class F1, confusion matrix. Macro-F1 is primary because classes are imbalanced.
+- Small, typed, documented functions. Modules: src/utils.py, src/data_loader.py, src/train.py, src/eval.py, src/gradcam.py, plus run_*.py orchestration scripts.
+- NEVER fabricate, hardcode, or mock results. All numbers must be computed by the code.
+- Canonical label map and shared-class sets are provided in each relevant prompt; use them exactly.

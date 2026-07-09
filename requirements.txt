@@ -1,0 +1,15 @@
+torch
+torchvision
+timm
+scikit-learn
+albumentations
+opencv-python
+grad-cam
+pandas
+numpy
+matplotlib
+seaborn
+pillow
+imagehash
+pyyaml
+tqdm
