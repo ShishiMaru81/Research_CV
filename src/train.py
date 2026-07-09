@@ -10,11 +10,15 @@ import timm
 import torch
 import torch.nn as nn
 from sklearn.metrics import f1_score
-from torch.cuda.amp import GradScaler, autocast
 from tqdm import tqdm
 
 from src.data_loader import make_loaders
 from src.utils import get_device, load_config, set_seed
+
+try:
+    from torch.amp import GradScaler, autocast
+except ImportError:  # pragma: no cover
+    from torch.cuda.amp import GradScaler, autocast
 
 
 def discover_classes(manifest_path: Path, datasets: list[str]) -> list[str]:
@@ -86,7 +90,11 @@ def train_one_epoch(
         optimizer.zero_grad(set_to_none=True)
 
         if use_amp and scaler is not None:
-            with autocast():
+            try:
+                amp_ctx = autocast("cuda")
+            except TypeError:  # older torch
+                amp_ctx = autocast()
+            with amp_ctx:
                 logits = model(images)
                 loss = criterion(logits, labels)
             scaler.scale(loss).backward()
@@ -114,6 +122,7 @@ def train(
     use_amp: bool = True,
     verify_images: bool = False,
     path_remap: tuple[str, str] | None = None,
+    image_root: str | None = None,
 ) -> tuple[Path, dict[str, Any]]:
     set_seed(seed)
     device = get_device()
@@ -149,6 +158,7 @@ def train(
         manifest_path=str(manifest_path),
         verify_images=verify_images,
         path_remap=path_remap,
+        image_root=image_root,
     )
 
     model = build_model(model_name, num_classes=len(classes), pretrained=True).to(device)
@@ -158,7 +168,10 @@ def train(
     criterion = nn.CrossEntropyLoss(weight=class_weights.to(device))
 
     use_amp = bool(use_amp and device.type == "cuda")
-    scaler = GradScaler(enabled=use_amp)
+    try:
+        scaler = GradScaler("cuda", enabled=use_amp)
+    except TypeError:  # older torch
+        scaler = GradScaler(enabled=use_amp)
 
     history: list[dict[str, float]] = []
     best_macro_f1 = -1.0
@@ -281,6 +294,14 @@ def parse_args() -> argparse.Namespace:
         default=None,
         help="Rewrite manifest image_path prefix, e.g. 'data/raw' '/kaggle/input'.",
     )
+    parser.add_argument(
+        "--image_root",
+        default=None,
+        help=(
+            "Rebuild paths as {image_root}/{original_class}/{filename}. "
+            "Preferred on Kaggle, e.g. /kaggle/input/riceleafbd"
+        ),
+    )
     return parser.parse_args()
 
 
@@ -302,4 +323,5 @@ if __name__ == "__main__":
         use_amp=not args.no_amp,
         verify_images=args.verify_images,
         path_remap=path_remap,
+        image_root=args.image_root,
     )
