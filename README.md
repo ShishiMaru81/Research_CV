@@ -25,14 +25,15 @@ This is an application-plus-insight contribution with three first-class layers:
 2. Deduplicate: `python -m src.dedup`
 3. Train (Kaggle GPU): `python -m src.train --model mobilenetv2_100 --train_datasets riceleafbd --seed 42`
 4. Evaluate: `python -m src.eval --checkpoint <path.pth> --eval_dataset riceleafbd`
-5. In-dataset baselines: `python -m run_indataset`
+5. In-dataset baselines (Week 4): `python -m run_indataset`
 6. Cross-dataset transfer: `python -m run_crossdataset`
 7. Diagnosis: `python -m run_diagnosis`
 8. Figures: `python -m make_figures`
 
 ## Kaggle
-See `notebooks/kaggle_week3.md` for the GPU notebook cells.
-Frozen manifest is tracked at `artifacts/manifest.csv` (copy into `results/manifest.csv` on Kaggle).
+- Week 3: `notebooks/kaggle_week3.md`
+- Week 4: `notebooks/kaggle_week4.md`
+Frozen manifest is tracked at `artifacts/manifest.csv` (prepare with `python -m src.prepare_kaggle_manifest` on Kaggle).
 
 ## Notes
 - Keep only original images (exclude pre-augmented copies).
