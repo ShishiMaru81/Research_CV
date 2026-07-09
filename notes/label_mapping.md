@@ -30,5 +30,11 @@ Canonical labels:
 - riceleafbd ∩ brri_rice_disease_pest = {healthy, tungro}
 - all three = {tungro}
 
-## Flagged class needing verification in Week 2
-- Rice (16 images in BRRI originals) does not directly map from canonical list and must be resolved before manifest build.
+## Resolved Week 2 edge case: BRRI Rice
+- Decision: **exclude** (do not map to any canonical class).
+- Count: 16 original images under `brri_rice_disease_pest/Rice/`.
+- Rationale:
+  - Mendeley description lists Rice as "General rice leaf images", not a disease/pest class.
+  - Peer-reviewed Data in Brief paper reports 7 classes and omits Rice from the official class set.
+  - Spot-check of samples shows panicles with grain discoloration / mixed content, not leaf-disease classes used in this study.
+- Implementation: `EXCLUDED_RAW_CLASSES` in `src/build_manifest.py` skips this folder and reports the exclusion count.

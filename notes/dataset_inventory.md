@@ -22,11 +22,11 @@
 - Shath Blight: 219
 - Sheath Blight: 64
 
-### brri_rice_disease_pest (total: 2769)
+### brri_rice_disease_pest (total on disk: 2769; used in study: 2753)
 - Healthy: 603
 - Insect: 281
 - Leaf Scald: 421
-- Rice: 16
+- Rice: 16 (**excluded** — out-of-scope / ambiguous; see `notes/label_mapping.md`)
 - Rice Blast: 696
 - Rice Leaffolder: 247
 - Rice Stripes: 266

@@ -15,3 +15,4 @@
 4. Label integrity
 - Use canonical mapping only; do not guess unknown labels.
 - Any unmatched raw class must halt manifest generation for explicit mapping updates.
+- Explicit exclusions (documented, not guessed): BRRI `Rice` folder (16 images) is out-of-scope and excluded.
