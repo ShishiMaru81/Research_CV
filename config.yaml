@@ -6,6 +6,8 @@ batch_size: 32
 num_epochs: 30
 learning_rate: 0.001
 model_name: mobilenetv2_100
+head_epochs: 3
+early_stopping_patience: 7
 seeds:
   - 42
 
