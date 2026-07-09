@@ -118,6 +118,24 @@ def _assert_identical_mapping(train_classes: list[str], eval_classes: list[str])
         )
 
 
+def _posix_path(path: str) -> str:
+    return str(path).replace("\\", "/")
+
+
+def _filename_from_manifest_path(path: str) -> str:
+    return _posix_path(path).split("/")[-1]
+
+
+def _relative_under_dataset(path: str, dataset: str, original_class: str) -> str:
+    """Return path relative to the dataset root, preserving nested folders."""
+    posix = _posix_path(path)
+    markers = [f"data/raw/{dataset}/", f"/{dataset}/", f"{dataset}/"]
+    for marker in markers:
+        if marker in posix:
+            return posix.split(marker, 1)[1]
+    return f"{original_class}/{_filename_from_manifest_path(posix)}"
+
+
 def _apply_path_remap(manifest: pd.DataFrame, path_remap: tuple[str, str] | None) -> pd.DataFrame:
     if path_remap is None:
         return manifest
@@ -126,29 +144,56 @@ def _apply_path_remap(manifest: pd.DataFrame, path_remap: tuple[str, str] | None
     remapped["image_path"] = (
         remapped["image_path"]
         .astype(str)
-        .str.replace("\\", "/", regex=False)
+        .map(_posix_path)
         .str.replace(old.replace("\\", "/"), new.replace("\\", "/"), regex=False)
     )
     return remapped
 
 
 def _rebuild_paths_from_image_root(manifest: pd.DataFrame, image_root: str | Path) -> pd.DataFrame:
-    """Rebuild image_path as {image_root}/{original_class}/{filename}.
-
-    This is the robust Kaggle path strategy when uploaded datasets are organized
-    as class-named folders under a single root.
-    """
+    """Rebuild image_path as {image_root}/{original_class}/{filename}."""
     root = Path(image_root)
     rebuilt = manifest.copy()
     rebuilt["image_path"] = [
-        str(root / str(original_class) / Path(str(path)).name)
+        str(root / str(original_class) / _filename_from_manifest_path(path))
         for path, original_class in zip(rebuilt["image_path"], rebuilt["original_class"])
     ]
     return rebuilt
 
 
+def _rebuild_paths_from_dataset_roots(
+    manifest: pd.DataFrame, image_roots: dict[str, str]
+) -> pd.DataFrame:
+    """Rebuild paths using per-dataset roots, preserving nested relative structure.
+
+    Example:
+      data\\raw\\dhan_shomadhan\\White Background\\Brown Spot\\x.jpg
+      + root[/dhan] -> {root}/White Background/Brown Spot/x.jpg
+    """
+    rebuilt = manifest.copy()
+    new_paths: list[str] = []
+    for _, row in rebuilt.iterrows():
+        dataset = str(row["dataset"])
+        if dataset not in image_roots:
+            new_paths.append(str(row["image_path"]))
+            continue
+        rel = _relative_under_dataset(
+            str(row["image_path"]), dataset, str(row["original_class"])
+        )
+        new_paths.append(str(Path(image_roots[dataset]) / rel))
+    rebuilt["image_path"] = new_paths
+    return rebuilt
+
+
 def _assert_sample_paths_exist(manifest: pd.DataFrame, n: int = 5) -> None:
-    sample = manifest.head(n)
+    sample = manifest.head(max(n, 1))
+    # Prefer sampling across datasets when available.
+    if "dataset" in manifest.columns:
+        pieces = []
+        for _, group in manifest.groupby("dataset"):
+            pieces.append(group.head(max(1, n // max(manifest["dataset"].nunique(), 1))))
+        sample = pd.concat(pieces, ignore_index=True)
+
     missing: list[str] = []
     for path in sample["image_path"].astype(str).tolist():
         if not Path(path).exists():
@@ -171,8 +216,8 @@ def _assert_sample_paths_exist(manifest: pd.DataFrame, n: int = 5) -> None:
         children = sorted([p.name for p in parent.iterdir()])[:20]
         hint_lines.append(f"Parent contents (first 20): {children}")
     hint_lines.append(
-        "Fix: pass --image_root /kaggle/input/<your-slug> so paths become "
-        "{image_root}/{original_class}/{filename}. Check your Kaggle dataset folder nesting."
+        "Fix: pass --image_roots dataset=/kaggle/input/... for each dataset, "
+        "or rebuild results/manifest.csv with correct absolute paths."
     )
     raise FileNotFoundError("\n".join(hint_lines))
 
@@ -189,6 +234,7 @@ def make_loaders(
     verify_images: bool = False,
     path_remap: tuple[str, str] | None = None,
     image_root: str | None = None,
+    image_roots: dict[str, str] | None = None,
 ) -> tuple[DataLoader, DataLoader, DataLoader, dict[str, Any]]:
     config = load_config()
     resolved_manifest = (
@@ -197,7 +243,9 @@ def make_loaders(
         else Path(config["results_root"]) / "manifest.csv"
     )
     manifest = pd.read_csv(resolved_manifest)
-    if image_root:
+    if image_roots:
+        manifest = _rebuild_paths_from_dataset_roots(manifest, image_roots)
+    elif image_root:
         manifest = _rebuild_paths_from_image_root(manifest, image_root)
     else:
         manifest = _apply_path_remap(manifest, path_remap)

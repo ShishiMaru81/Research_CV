@@ -123,6 +123,7 @@ def train(
     verify_images: bool = False,
     path_remap: tuple[str, str] | None = None,
     image_root: str | None = None,
+    image_roots: dict[str, str] | None = None,
 ) -> tuple[Path, dict[str, Any]]:
     set_seed(seed)
     device = get_device()
@@ -159,6 +160,7 @@ def train(
         verify_images=verify_images,
         path_remap=path_remap,
         image_root=image_root,
+        image_roots=image_roots,
     )
 
     model = build_model(model_name, num_classes=len(classes), pretrained=True).to(device)
@@ -302,7 +304,25 @@ def parse_args() -> argparse.Namespace:
             "Preferred on Kaggle, e.g. /kaggle/input/riceleafbd"
         ),
     )
+    parser.add_argument(
+        "--image_roots",
+        nargs="*",
+        default=None,
+        help="Per-dataset roots as dataset=/abs/path (can pass multiple).",
+    )
     return parser.parse_args()
+
+
+def _parse_image_roots(items: list[str] | None) -> dict[str, str] | None:
+    if not items:
+        return None
+    roots: dict[str, str] = {}
+    for item in items:
+        if "=" not in item:
+            raise ValueError(f"Invalid --image_roots item '{item}'. Use dataset=/abs/path")
+        key, value = item.split("=", 1)
+        roots[key.strip()] = value.strip()
+    return roots
 
 
 if __name__ == "__main__":
@@ -324,4 +344,5 @@ if __name__ == "__main__":
         verify_images=args.verify_images,
         path_remap=path_remap,
         image_root=args.image_root,
+        image_roots=_parse_image_roots(args.image_roots),
     )
