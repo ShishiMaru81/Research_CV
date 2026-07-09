@@ -98,6 +98,7 @@ def evaluate(
     sample_n: int = 10,
     verify_images: bool = False,
     path_remap: tuple[str, str] | None = None,
+    image_root: str | None = None,
 ) -> dict[str, Any]:
     set_seed(seed)
     device = get_device()
@@ -131,6 +132,7 @@ def evaluate(
         manifest_path=str(manifest_path),
         verify_images=verify_images,
         path_remap=path_remap,
+        image_root=image_root,
     )
 
     if meta["class_to_index"] != class_to_index:
@@ -219,6 +221,11 @@ def parse_args() -> argparse.Namespace:
         default=None,
         help="Rewrite manifest image_path prefix for Kaggle mounts.",
     )
+    parser.add_argument(
+        "--image_root",
+        default=None,
+        help="Rebuild paths as {image_root}/{original_class}/{filename}.",
+    )
     return parser.parse_args()
 
 
@@ -235,4 +242,5 @@ if __name__ == "__main__":
         sample_n=args.sample_n,
         verify_images=args.verify_images,
         path_remap=path_remap,
+        image_root=args.image_root,
     )

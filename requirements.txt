@@ -3,7 +3,7 @@ torchvision
 timm
 scikit-learn
 albumentations
-opencv-python
+opencv-python-headless
 grad-cam
 pandas
 numpy
