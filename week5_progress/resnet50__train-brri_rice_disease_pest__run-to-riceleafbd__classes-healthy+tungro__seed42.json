@@ -1,0 +1,105 @@
+{
+  "model_name": "resnet50",
+  "train_datasets": [
+    "brri_rice_disease_pest"
+  ],
+  "eval_dataset": "brri_rice_disease_pest",
+  "classes": [
+    "healthy",
+    "tungro"
+  ],
+  "class_to_index": {
+    "healthy": 0,
+    "tungro": 1
+  },
+  "seed": 42,
+  "run_tag": "to-riceleafbd__classes-healthy+tungro",
+  "best_val_macro_f1": 0.9132164995790923,
+  "checkpoint_path": "results/checkpoints/resnet50__train-brri_rice_disease_pest__run-to-riceleafbd__classes-healthy+tungro__seed42.pth",
+  "history": [
+    {
+      "epoch": 1.0,
+      "train_loss": 0.6806217758886276,
+      "val_loss": 0.6125488527237423,
+      "val_accuracy": 0.761904776096344,
+      "val_macro_f1": 0.5714285714285714
+    },
+    {
+      "epoch": 2.0,
+      "train_loss": 0.6194990641597171,
+      "val_loss": 0.6170325014326308,
+      "val_accuracy": 0.6984127163887024,
+      "val_macro_f1": 0.6906177306797622
+    },
+    {
+      "epoch": 3.0,
+      "train_loss": 0.5804106149892047,
+      "val_loss": 0.5237675734928676,
+      "val_accuracy": 0.8888888955116272,
+      "val_macro_f1": 0.868122009569378
+    },
+    {
+      "epoch": 4.0,
+      "train_loss": 0.5264339722781514,
+      "val_loss": 0.4138783471924918,
+      "val_accuracy": 0.8492063283920288,
+      "val_macro_f1": 0.7730160235137954
+    },
+    {
+      "epoch": 5.0,
+      "train_loss": 0.42294214638060745,
+      "val_loss": 0.3351347138957372,
+      "val_accuracy": 0.9285714030265808,
+      "val_macro_f1": 0.9132164995790923
+    },
+    {
+      "epoch": 6.0,
+      "train_loss": 0.3455416850606533,
+      "val_loss": 0.2760572632153829,
+      "val_accuracy": 0.89682537317276,
+      "val_macro_f1": 0.8766101694915254
+    },
+    {
+      "epoch": 7.0,
+      "train_loss": 0.28583341649716093,
+      "val_loss": 0.26930686169200474,
+      "val_accuracy": 0.9047619104385376,
+      "val_macro_f1": 0.8915351506456242
+    },
+    {
+      "epoch": 8.0,
+      "train_loss": 0.2533715139119451,
+      "val_loss": 0.21194614919405136,
+      "val_accuracy": 0.9126983880996704,
+      "val_macro_f1": 0.8985878393209922
+    },
+    {
+      "epoch": 9.0,
+      "train_loss": 0.20972454213934155,
+      "val_loss": 0.2214366966296756,
+      "val_accuracy": 0.9047619104385376,
+      "val_macro_f1": 0.8901162790697674
+    },
+    {
+      "epoch": 10.0,
+      "train_loss": 0.2119595821320707,
+      "val_loss": 0.19797382752100626,
+      "val_accuracy": 0.89682537317276,
+      "val_macro_f1": 0.8784415584415585
+    },
+    {
+      "epoch": 11.0,
+      "train_loss": 0.19295500575585356,
+      "val_loss": 0.19317248723809682,
+      "val_accuracy": 0.9126983880996704,
+      "val_macro_f1": 0.8985878393209922
+    },
+    {
+      "epoch": 12.0,
+      "train_loss": 0.167957979774637,
+      "val_loss": 0.2252361353427645,
+      "val_accuracy": 0.9047619104385376,
+      "val_macro_f1": 0.8928571428571428
+    }
+  ]
+}

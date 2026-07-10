@@ -1,0 +1,77 @@
+{
+  "model_name": "mobilenetv2_100",
+  "train_datasets": [
+    "riceleafbd"
+  ],
+  "eval_dataset": "riceleafbd",
+  "classes": [
+    "brown_spot",
+    "tungro"
+  ],
+  "class_to_index": {
+    "brown_spot": 0,
+    "tungro": 1
+  },
+  "seed": 42,
+  "run_tag": "to-dhan_shomadhan__classes-brown_spot+tungro",
+  "best_val_macro_f1": 0.9291925465838509,
+  "checkpoint_path": "results/checkpoints/mobilenetv2_100__train-riceleafbd__run-to-dhan_shomadhan__classes-brown_spot+tungro__seed42.pth",
+  "history": [
+    {
+      "epoch": 1.0,
+      "train_loss": 1.0714113316228313,
+      "val_loss": 0.5081899828232997,
+      "val_accuracy": 0.932330846786499,
+      "val_macro_f1": 0.9291925465838509
+    },
+    {
+      "epoch": 2.0,
+      "train_loss": 0.3006558343632928,
+      "val_loss": 0.7852572355051561,
+      "val_accuracy": 0.9248120188713074,
+      "val_macro_f1": 0.9215801886792453
+    },
+    {
+      "epoch": 3.0,
+      "train_loss": 0.21022643545462238,
+      "val_loss": 0.9458988178941066,
+      "val_accuracy": 0.8796992301940918,
+      "val_macro_f1": 0.8736942070275404
+    },
+    {
+      "epoch": 4.0,
+      "train_loss": 0.11920015602166044,
+      "val_loss": 0.9284113555922544,
+      "val_accuracy": 0.9097744226455688,
+      "val_macro_f1": 0.9045911047345767
+    },
+    {
+      "epoch": 5.0,
+      "train_loss": 0.10635962465070582,
+      "val_loss": 1.054442568814975,
+      "val_accuracy": 0.9172932505607605,
+      "val_macro_f1": 0.9134575569358179
+    },
+    {
+      "epoch": 6.0,
+      "train_loss": 0.10796178631792445,
+      "val_loss": 1.0020863250505416,
+      "val_accuracy": 0.9248120188713074,
+      "val_macro_f1": 0.9215801886792453
+    },
+    {
+      "epoch": 7.0,
+      "train_loss": 0.07116895076588632,
+      "val_loss": 0.8872885865270961,
+      "val_accuracy": 0.9248120188713074,
+      "val_macro_f1": 0.9215801886792453
+    },
+    {
+      "epoch": 8.0,
+      "train_loss": 0.03852804471375015,
+      "val_loss": 0.8719577044879756,
+      "val_accuracy": 0.932330846786499,
+      "val_macro_f1": 0.9291925465838509
+    }
+  ]
+}
