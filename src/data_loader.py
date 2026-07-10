@@ -185,6 +185,20 @@ def _rebuild_paths_from_dataset_roots(
     return rebuilt
 
 
+def resolve_manifest_paths(
+    manifest: pd.DataFrame,
+    path_remap: tuple[str, str] | None = None,
+    image_root: str | None = None,
+    image_roots: dict[str, str] | None = None,
+) -> pd.DataFrame:
+    """Resolve manifest paths for local or Kaggle dataset layouts."""
+    if image_roots:
+        return _rebuild_paths_from_dataset_roots(manifest, image_roots)
+    if image_root:
+        return _rebuild_paths_from_image_root(manifest, image_root)
+    return _apply_path_remap(manifest, path_remap)
+
+
 def _assert_sample_paths_exist(manifest: pd.DataFrame, n: int = 5) -> None:
     sample = manifest.head(max(n, 1))
     # Prefer sampling across datasets when available.
@@ -243,12 +257,12 @@ def make_loaders(
         else Path(config["results_root"]) / "manifest.csv"
     )
     manifest = pd.read_csv(resolved_manifest)
-    if image_roots:
-        manifest = _rebuild_paths_from_dataset_roots(manifest, image_roots)
-    elif image_root:
-        manifest = _rebuild_paths_from_image_root(manifest, image_root)
-    else:
-        manifest = _apply_path_remap(manifest, path_remap)
+    manifest = resolve_manifest_paths(
+        manifest,
+        path_remap=path_remap,
+        image_root=image_root,
+        image_roots=image_roots,
+    )
     _assert_sample_paths_exist(manifest, n=5)
 
     required = {"image_path", "dataset", "mapped_class", "split", "is_duplicate"}
