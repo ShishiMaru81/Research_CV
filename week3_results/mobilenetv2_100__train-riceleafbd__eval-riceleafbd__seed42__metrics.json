@@ -1,0 +1,57 @@
+{
+  "checkpoint_path": "/kaggle/working/Research_CV/results/checkpoints/mobilenetv2_100__train-riceleafbd__seed42.pth",
+  "model_name": "mobilenetv2_100",
+  "train_datasets": [
+    "riceleafbd"
+  ],
+  "eval_dataset": "riceleafbd",
+  "split": "test",
+  "seed": 42,
+  "classes": [
+    "bacterial_leaf_blight",
+    "brown_spot",
+    "healthy",
+    "tungro"
+  ],
+  "class_to_index": {
+    "bacterial_leaf_blight": 0,
+    "brown_spot": 1,
+    "healthy": 2,
+    "tungro": 3
+  },
+  "accuracy": 0.8936170212765957,
+  "macro_f1": 0.9069841686306421,
+  "per_class_f1": {
+    "bacterial_leaf_blight": 0.8244274809160306,
+    "brown_spot": 0.9245283018867925,
+    "healthy": 1.0,
+    "tungro": 0.8789808917197452
+  },
+  "confusion_matrix": [
+    [
+      54,
+      2,
+      0,
+      8
+    ],
+    [
+      4,
+      49,
+      0,
+      1
+    ],
+    [
+      0,
+      0,
+      38,
+      0
+    ],
+    [
+      9,
+      1,
+      0,
+      69
+    ]
+  ],
+  "n_samples": 235
+}

@@ -1,0 +1,105 @@
+{
+  "checkpoint_path": "/kaggle/working/Research_CV/results/checkpoints/resnet50__train-brri_rice_disease_pest__seed42.pth",
+  "model_name": "resnet50",
+  "train_datasets": [
+    "brri_rice_disease_pest"
+  ],
+  "eval_dataset": "brri_rice_disease_pest",
+  "split": "test",
+  "seed": 42,
+  "classes": [
+    "healthy",
+    "insect",
+    "leaf_folder",
+    "rice_blast",
+    "scald",
+    "stripes",
+    "tungro"
+  ],
+  "class_to_index": {
+    "healthy": 0,
+    "insect": 1,
+    "leaf_folder": 2,
+    "rice_blast": 3,
+    "scald": 4,
+    "stripes": 5,
+    "tungro": 6
+  },
+  "accuracy": 0.7246376811594203,
+  "macro_f1": 0.6993184899602011,
+  "per_class_f1": {
+    "healthy": 0.8181818181818182,
+    "insect": 0.7764705882352941,
+    "leaf_folder": 0.6666666666666666,
+    "rice_blast": 0.7575757575757576,
+    "scald": 0.6776859504132231,
+    "stripes": 0.55,
+    "tungro": 0.6486486486486487
+  },
+  "confusion_matrix": [
+    [
+      81,
+      3,
+      0,
+      2,
+      0,
+      0,
+      5
+    ],
+    [
+      3,
+      33,
+      4,
+      0,
+      2,
+      0,
+      0
+    ],
+    [
+      0,
+      1,
+      24,
+      2,
+      4,
+      4,
+      2
+    ],
+    [
+      17,
+      0,
+      2,
+      75,
+      4,
+      3,
+      4
+    ],
+    [
+      1,
+      3,
+      5,
+      2,
+      41,
+      10,
+      1
+    ],
+    [
+      1,
+      3,
+      0,
+      6,
+      6,
+      22,
+      2
+    ],
+    [
+      4,
+      0,
+      0,
+      6,
+      1,
+      1,
+      24
+    ]
+  ],
+  "n_samples": 414
+}

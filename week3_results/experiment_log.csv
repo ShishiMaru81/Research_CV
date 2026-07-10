@@ -1,0 +1,2 @@
+date,run_id,model,train_dataset,eval_dataset,seed,accuracy,macro_f1,notes
+2026-07-09T15:42:11.065992+00:00,mobilenetv2_100__train-riceleafbd__eval-riceleafbd__seed42,mobilenetv2_100,riceleafbd,riceleafbd,42,0.8936170212765957,0.9069841686306421,split=test

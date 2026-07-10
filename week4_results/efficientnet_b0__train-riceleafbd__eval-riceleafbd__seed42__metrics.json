@@ -1,0 +1,57 @@
+{
+  "checkpoint_path": "/kaggle/working/Research_CV/results/checkpoints/efficientnet_b0__train-riceleafbd__seed42.pth",
+  "model_name": "efficientnet_b0",
+  "train_datasets": [
+    "riceleafbd"
+  ],
+  "eval_dataset": "riceleafbd",
+  "split": "test",
+  "seed": 42,
+  "classes": [
+    "bacterial_leaf_blight",
+    "brown_spot",
+    "healthy",
+    "tungro"
+  ],
+  "class_to_index": {
+    "bacterial_leaf_blight": 0,
+    "brown_spot": 1,
+    "healthy": 2,
+    "tungro": 3
+  },
+  "accuracy": 0.8680851063829788,
+  "macro_f1": 0.8828498291938524,
+  "per_class_f1": {
+    "bacterial_leaf_blight": 0.7969924812030075,
+    "brown_spot": 0.912621359223301,
+    "healthy": 0.9736842105263158,
+    "tungro": 0.8481012658227848
+  },
+  "confusion_matrix": [
+    [
+      53,
+      2,
+      0,
+      9
+    ],
+    [
+      4,
+      47,
+      1,
+      2
+    ],
+    [
+      0,
+      0,
+      37,
+      1
+    ],
+    [
+      12,
+      0,
+      0,
+      67
+    ]
+  ],
+  "n_samples": 235
+}
