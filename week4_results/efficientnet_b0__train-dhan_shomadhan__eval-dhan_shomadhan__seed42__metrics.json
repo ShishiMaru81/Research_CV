@@ -1,0 +1,71 @@
+{
+  "checkpoint_path": "/kaggle/working/Research_CV/results/checkpoints/efficientnet_b0__train-dhan_shomadhan__seed42.pth",
+  "model_name": "efficientnet_b0",
+  "train_datasets": [
+    "dhan_shomadhan"
+  ],
+  "eval_dataset": "dhan_shomadhan",
+  "split": "test",
+  "seed": 42,
+  "classes": [
+    "brown_spot",
+    "rice_blast",
+    "scald",
+    "sheath_blight",
+    "tungro"
+  ],
+  "class_to_index": {
+    "brown_spot": 0,
+    "rice_blast": 1,
+    "scald": 2,
+    "sheath_blight": 3,
+    "tungro": 4
+  },
+  "accuracy": 0.6586826347305389,
+  "macro_f1": 0.650376332469029,
+  "per_class_f1": {
+    "brown_spot": 0.6153846153846154,
+    "rice_blast": 0.6741573033707865,
+    "scald": 0.53125,
+    "sheath_blight": 0.7435897435897436,
+    "tungro": 0.6875
+  },
+  "confusion_matrix": [
+    [
+      12,
+      4,
+      3,
+      1,
+      1
+    ],
+    [
+      1,
+      30,
+      4,
+      3,
+      3
+    ],
+    [
+      2,
+      7,
+      17,
+      2,
+      4
+    ],
+    [
+      3,
+      5,
+      2,
+      29,
+      4
+    ],
+    [
+      0,
+      2,
+      6,
+      0,
+      22
+    ]
+  ],
+  "n_samples": 167
+}

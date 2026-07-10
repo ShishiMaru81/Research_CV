@@ -1,0 +1,10 @@
+date,run_id,model,train_dataset,eval_dataset,seed,accuracy,macro_f1,notes
+2026-07-09T15:42:11.065992+00:00,mobilenetv2_100__train-riceleafbd__eval-riceleafbd__seed42,mobilenetv2_100,riceleafbd,riceleafbd,42,0.8936170212765957,0.906984168630642,split=test
+2026-07-09T16:41:49.415727+00:00,mobilenetv2_100__train-dhan_shomadhan__eval-dhan_shomadhan__seed42,mobilenetv2_100,dhan_shomadhan,dhan_shomadhan,42,0.6227544910179641,0.6145280569062439,split=test
+2026-07-09T17:04:22.974120+00:00,mobilenetv2_100__train-brri_rice_disease_pest__eval-brri_rice_disease_pest__seed42,mobilenetv2_100,brri_rice_disease_pest,brri_rice_disease_pest,42,0.5990338164251208,0.5704761178825634,split=test
+2026-07-09T17:08:57.879602+00:00,efficientnet_b0__train-riceleafbd__eval-riceleafbd__seed42,efficientnet_b0,riceleafbd,riceleafbd,42,0.8680851063829788,0.8828498291938524,split=test
+2026-07-09T17:26:32.073105+00:00,efficientnet_b0__train-dhan_shomadhan__eval-dhan_shomadhan__seed42,efficientnet_b0,dhan_shomadhan,dhan_shomadhan,42,0.6586826347305389,0.650376332469029,split=test
+2026-07-09T17:52:48.742495+00:00,efficientnet_b0__train-brri_rice_disease_pest__eval-brri_rice_disease_pest__seed42,efficientnet_b0,brri_rice_disease_pest,brri_rice_disease_pest,42,0.6739130434782609,0.645499897781957,split=test
+2026-07-09T18:02:13.563413+00:00,resnet50__train-riceleafbd__eval-riceleafbd__seed42,resnet50,riceleafbd,riceleafbd,42,0.8978723404255319,0.9125773915599568,split=test
+2026-07-09T18:25:38.744703+00:00,resnet50__train-dhan_shomadhan__eval-dhan_shomadhan__seed42,resnet50,dhan_shomadhan,dhan_shomadhan,42,0.6107784431137725,0.590179274423112,split=test
+2026-07-09T18:52:28.211105+00:00,resnet50__train-brri_rice_disease_pest__eval-brri_rice_disease_pest__seed42,resnet50,brri_rice_disease_pest,brri_rice_disease_pest,42,0.7246376811594203,0.6993184899602011,split=test

@@ -1,0 +1,71 @@
+{
+  "checkpoint_path": "/kaggle/working/Research_CV/results/checkpoints/mobilenetv2_100__train-dhan_shomadhan__seed42.pth",
+  "model_name": "mobilenetv2_100",
+  "train_datasets": [
+    "dhan_shomadhan"
+  ],
+  "eval_dataset": "dhan_shomadhan",
+  "split": "test",
+  "seed": 42,
+  "classes": [
+    "brown_spot",
+    "rice_blast",
+    "scald",
+    "sheath_blight",
+    "tungro"
+  ],
+  "class_to_index": {
+    "brown_spot": 0,
+    "rice_blast": 1,
+    "scald": 2,
+    "sheath_blight": 3,
+    "tungro": 4
+  },
+  "accuracy": 0.6227544910179641,
+  "macro_f1": 0.6145280569062439,
+  "per_class_f1": {
+    "brown_spot": 0.7619047619047619,
+    "rice_blast": 0.6046511627906976,
+    "scald": 0.4,
+    "sheath_blight": 0.7446808510638298,
+    "tungro": 0.5614035087719298
+  },
+  "confusion_matrix": [
+    [
+      16,
+      1,
+      0,
+      3,
+      1
+    ],
+    [
+      2,
+      26,
+      4,
+      7,
+      2
+    ],
+    [
+      3,
+      10,
+      11,
+      4,
+      4
+    ],
+    [
+      0,
+      2,
+      2,
+      35,
+      4
+    ],
+    [
+      0,
+      6,
+      6,
+      2,
+      16
+    ]
+  ],
+  "n_samples": 167
+}

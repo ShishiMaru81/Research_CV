@@ -1,0 +1,57 @@
+{
+  "checkpoint_path": "/kaggle/working/Research_CV/results/checkpoints/resnet50__train-riceleafbd__seed42.pth",
+  "model_name": "resnet50",
+  "train_datasets": [
+    "riceleafbd"
+  ],
+  "eval_dataset": "riceleafbd",
+  "split": "test",
+  "seed": 42,
+  "classes": [
+    "bacterial_leaf_blight",
+    "brown_spot",
+    "healthy",
+    "tungro"
+  ],
+  "class_to_index": {
+    "bacterial_leaf_blight": 0,
+    "brown_spot": 1,
+    "healthy": 2,
+    "tungro": 3
+  },
+  "accuracy": 0.8978723404255319,
+  "macro_f1": 0.9125773915599567,
+  "per_class_f1": {
+    "bacterial_leaf_blight": 0.8461538461538461,
+    "brown_spot": 0.9433962264150944,
+    "healthy": 1.0,
+    "tungro": 0.8607594936708861
+  },
+  "confusion_matrix": [
+    [
+      55,
+      0,
+      0,
+      9
+    ],
+    [
+      2,
+      50,
+      0,
+      2
+    ],
+    [
+      0,
+      0,
+      38,
+      0
+    ],
+    [
+      9,
+      2,
+      0,
+      68
+    ]
+  ],
+  "n_samples": 235
+}
