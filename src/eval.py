@@ -155,7 +155,12 @@ def evaluate(
     cm = confusion_matrix(labels, preds, labels=list(range(len(classes))))
 
     train_tag = "+".join(train_datasets)
-    stem = f"{model_name}__train-{train_tag}__eval-{eval_dataset}__seed{seed}"
+    run_tag = ckpt.get("run_tag")
+    run_part = f"__run-{run_tag}" if run_tag else ""
+    stem = (
+        f"{model_name}__train-{train_tag}{run_part}"
+        f"__eval-{eval_dataset}__seed{seed}"
+    )
     metrics_path = results_root / f"{stem}__metrics.json"
     cm_path = results_root / f"{stem}__confusion_matrix.png"
 
@@ -166,6 +171,7 @@ def evaluate(
         "eval_dataset": eval_dataset,
         "split": split,
         "seed": seed,
+        "run_tag": run_tag,
         "classes": classes,
         "class_to_index": class_to_index,
         "accuracy": accuracy,

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 from pathlib import Path
 from typing import Any
 
@@ -35,6 +36,24 @@ def discover_classes(manifest_path: Path, datasets: list[str]) -> list[str]:
 
 def build_model(model_name: str, num_classes: int, pretrained: bool = True) -> nn.Module:
     return timm.create_model(model_name, pretrained=pretrained, num_classes=num_classes)
+
+
+def _safe_tag(value: str) -> str:
+    """Return a filesystem-safe experiment tag."""
+    return re.sub(r"[^A-Za-z0-9._+-]+", "-", value).strip("-")
+
+
+def training_stem(
+    model_name: str,
+    train_datasets: list[str],
+    seed: int,
+    run_tag: str | None = None,
+) -> str:
+    """Build the stable identifier used by checkpoints and training logs."""
+    stem = f"{model_name}__train-{'+'.join(train_datasets)}"
+    if run_tag:
+        stem += f"__run-{_safe_tag(run_tag)}"
+    return f"{stem}__seed{seed}"
 
 
 def set_backbone_trainable(model: nn.Module, trainable: bool) -> None:
@@ -124,6 +143,7 @@ def train(
     path_remap: tuple[str, str] | None = None,
     image_root: str | None = None,
     image_roots: dict[str, str] | None = None,
+    run_tag: str | None = None,
 ) -> tuple[Path, dict[str, Any]]:
     set_seed(seed)
     device = get_device()
@@ -179,11 +199,14 @@ def train(
     best_macro_f1 = -1.0
     epochs_without_improve = 0
 
-    train_tag = "+".join(train_datasets)
+    normalized_run_tag = _safe_tag(run_tag) if run_tag else None
     ckpt_dir = results_root / "checkpoints"
     ckpt_dir.mkdir(parents=True, exist_ok=True)
-    checkpoint_path = ckpt_dir / f"{model_name}__train-{train_tag}__seed{seed}.pth"
-    log_path = results_root / f"{model_name}__train-{train_tag}__seed{seed}.json"
+    artifact_stem = training_stem(
+        model_name, train_datasets, seed, normalized_run_tag
+    )
+    checkpoint_path = ckpt_dir / f"{artifact_stem}.pth"
+    log_path = results_root / f"{artifact_stem}.json"
 
     for epoch in range(1, num_epochs + 1):
         if epoch == 1:
@@ -233,6 +256,7 @@ def train(
                     "classes": classes,
                     "class_to_index": meta["class_to_index"],
                     "seed": seed,
+                    "run_tag": normalized_run_tag,
                     "best_val_macro_f1": best_macro_f1,
                     "model_state_dict": model.state_dict(),
                 },
@@ -251,6 +275,7 @@ def train(
         "classes": classes,
         "class_to_index": meta["class_to_index"],
         "seed": seed,
+        "run_tag": normalized_run_tag,
         "best_val_macro_f1": best_macro_f1,
         "checkpoint_path": str(checkpoint_path),
         "history": history,
@@ -310,6 +335,11 @@ def parse_args() -> argparse.Namespace:
         default=None,
         help="Per-dataset roots as dataset=/abs/path (can pass multiple).",
     )
+    parser.add_argument(
+        "--run_tag",
+        default=None,
+        help="Optional unique tag for pair/subset experiments.",
+    )
     return parser.parse_args()
 
 
@@ -345,4 +375,5 @@ if __name__ == "__main__":
         path_remap=path_remap,
         image_root=args.image_root,
         image_roots=_parse_image_roots(args.image_roots),
+        run_tag=args.run_tag,
     )
