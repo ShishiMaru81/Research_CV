@@ -27,13 +27,14 @@ This is an application-plus-insight contribution with three first-class layers:
 4. Evaluate: `python -m src.eval --checkpoint <path.pth> --eval_dataset riceleafbd`
 5. In-dataset baselines (Week 4): `python -m run_indataset`
 6. Cross-dataset transfer (Week 5): `python -m run_crossdataset`
-7. Diagnosis: `python -m run_diagnosis`
+7. Diagnosis (Week 6): `python -m run_diagnosis`
 8. Figures: `python -m make_figures`
 
 ## Kaggle
 - Week 3: `notebooks/kaggle_week3.md`
 - Week 4: `notebooks/kaggle_week4.md`
 - Week 5: `notebooks/kaggle_week5.md`
+- Week 6: `notebooks/kaggle_week6.md`
 Frozen manifest is tracked at `artifacts/manifest.csv` (prepare with `python -m src.prepare_kaggle_manifest` on Kaggle).
 
 ## Notes
