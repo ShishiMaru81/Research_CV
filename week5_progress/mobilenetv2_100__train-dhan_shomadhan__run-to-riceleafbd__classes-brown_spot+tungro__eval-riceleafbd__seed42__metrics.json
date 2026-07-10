@@ -1,0 +1,36 @@
+{
+  "checkpoint_path": "results/checkpoints/mobilenetv2_100__train-dhan_shomadhan__run-to-riceleafbd__classes-brown_spot+tungro__seed42.pth",
+  "model_name": "mobilenetv2_100",
+  "train_datasets": [
+    "dhan_shomadhan"
+  ],
+  "eval_dataset": "riceleafbd",
+  "split": "test",
+  "seed": 42,
+  "run_tag": "to-riceleafbd__classes-brown_spot+tungro",
+  "classes": [
+    "brown_spot",
+    "tungro"
+  ],
+  "class_to_index": {
+    "brown_spot": 0,
+    "tungro": 1
+  },
+  "accuracy": 0.5263157894736842,
+  "macro_f1": 0.525886946189102,
+  "per_class_f1": {
+    "brown_spot": 0.5116279069767442,
+    "tungro": 0.5401459854014599
+  },
+  "confusion_matrix": [
+    [
+      33,
+      21
+    ],
+    [
+      42,
+      37
+    ]
+  ],
+  "n_samples": 133
+}
