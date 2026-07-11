@@ -13,7 +13,7 @@ import torch.nn as nn
 from sklearn.metrics import f1_score
 from tqdm import tqdm
 
-from src.data_loader import make_loaders
+from src.data_loader import build_train_transform, make_loaders
 from src.utils import get_device, load_config, set_seed
 
 try:
@@ -144,6 +144,7 @@ def train(
     image_root: str | None = None,
     image_roots: dict[str, str] | None = None,
     run_tag: str | None = None,
+    augmentation: str = "default",
 ) -> tuple[Path, dict[str, Any]]:
     set_seed(seed)
     device = get_device()
@@ -169,6 +170,8 @@ def train(
     patience = int(config.get("early_stopping_patience", 7))
     head_epochs = int(config.get("head_epochs", 3))
 
+    aug_pipeline = build_train_transform(image_size, augmentation)
+
     train_loader, val_loader, _, meta = make_loaders(
         train_datasets=train_datasets,
         eval_dataset=eval_ds,
@@ -181,6 +184,7 @@ def train(
         path_remap=path_remap,
         image_root=image_root,
         image_roots=image_roots,
+        aug_pipeline=aug_pipeline,
     )
 
     model = build_model(model_name, num_classes=len(classes), pretrained=True).to(device)
@@ -257,6 +261,7 @@ def train(
                     "class_to_index": meta["class_to_index"],
                     "seed": seed,
                     "run_tag": normalized_run_tag,
+                    "augmentation": augmentation,
                     "best_val_macro_f1": best_macro_f1,
                     "model_state_dict": model.state_dict(),
                 },
@@ -276,6 +281,7 @@ def train(
         "class_to_index": meta["class_to_index"],
         "seed": seed,
         "run_tag": normalized_run_tag,
+        "augmentation": augmentation,
         "best_val_macro_f1": best_macro_f1,
         "checkpoint_path": str(checkpoint_path),
         "history": history,
@@ -340,6 +346,12 @@ def parse_args() -> argparse.Namespace:
         default=None,
         help="Optional unique tag for pair/subset experiments.",
     )
+    parser.add_argument(
+        "--augmentation",
+        default="default",
+        choices=["default", "strong"],
+        help="Train-time augmentation profile (default or strong).",
+    )
     return parser.parse_args()
 
 
@@ -376,4 +388,5 @@ if __name__ == "__main__":
         image_root=args.image_root,
         image_roots=_parse_image_roots(args.image_roots),
         run_tag=args.run_tag,
+        augmentation=args.augmentation,
     )

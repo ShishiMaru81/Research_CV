@@ -185,6 +185,9 @@ def run_crossdataset(
     seeds: list[int] | None = None,
     image_roots: dict[str, str] | None = None,
     skip_existing: bool = True,
+    augmentation: str = "default",
+    matrix_filename: str | None = None,
+    gap_filename: str | None = None,
 ) -> tuple[Path, Path]:
     config = load_config(config_path)
     results_root = Path(config["results_root"])
@@ -203,8 +206,17 @@ def run_crossdataset(
         for seed in config.get("seeds", [config.get("seed", 42)])
     ]
 
-    matrix_path = results_root / "crossdataset_matrix.csv"
-    gap_path = results_root / "generalization_gap.csv"
+    is_augmented = augmentation != "default"
+    default_matrix = (
+        "crossdataset_matrix_aug.csv"
+        if is_augmented
+        else "crossdataset_matrix.csv"
+    )
+    default_gap = (
+        "generalization_gap_aug.csv" if is_augmented else "generalization_gap.csv"
+    )
+    matrix_path = results_root / (matrix_filename or default_matrix)
+    gap_path = results_root / (gap_filename or default_gap)
 
     for pair in pairs:
         _validate_pair_classes(manifest, pair)
@@ -218,6 +230,11 @@ def run_crossdataset(
                     "classes": pair.class_string,
                     "seed": seed,
                 }
+                effective_run_tag = (
+                    f"{pair.run_tag}__aug-{augmentation}"
+                    if is_augmented
+                    else pair.run_tag
+                )
                 matrix_df = (
                     pd.read_csv(matrix_path)
                     if matrix_path.exists()
@@ -241,7 +258,7 @@ def run_crossdataset(
                     model_name,
                     [pair.train_dataset],
                     seed,
-                    pair.run_tag,
+                    effective_run_tag,
                 )
                 checkpoint_path = (
                     results_root / "checkpoints" / f"{artifact_stem}.pth"
@@ -266,7 +283,8 @@ def run_crossdataset(
                         seed=seed,
                         eval_dataset=pair.train_dataset,
                         image_roots=image_roots,
-                        run_tag=pair.run_tag,
+                        run_tag=effective_run_tag,
+                        augmentation=augmentation,
                     )
 
                 print(
@@ -311,6 +329,7 @@ def run_crossdataset(
 
                 matrix_row = {
                     **key_row,
+                    "augmentation": augmentation,
                     "accuracy": cross["accuracy"],
                     "macro_f1": cross["macro_f1"],
                     "n_samples": cross["n_samples"],
@@ -318,6 +337,7 @@ def run_crossdataset(
                 }
                 gap_row = {
                     **key_row,
+                    "augmentation": augmentation,
                     "in_dataset_accuracy": reference["accuracy"],
                     "in_dataset_macro_f1": reference["macro_f1"],
                     "cross_accuracy": cross["accuracy"],
@@ -370,6 +390,22 @@ def parse_args() -> argparse.Namespace:
         help="Re-run combinations already present in both output CSVs.",
     )
     parser.add_argument(
+        "--augmentation",
+        default="default",
+        choices=["default", "strong"],
+        help="Train-time augmentation profile. 'strong' is the Week 7 mitigation.",
+    )
+    parser.add_argument(
+        "--matrix_filename",
+        default=None,
+        help="Override matrix CSV filename inside results_root.",
+    )
+    parser.add_argument(
+        "--gap_filename",
+        default=None,
+        help="Override gap CSV filename inside results_root.",
+    )
+    parser.add_argument(
         "--summary_only",
         action="store_true",
         help="Only print existing matrix and gap summaries.",
@@ -382,10 +418,18 @@ if __name__ == "__main__":
     cfg = load_config(args.config)
     root = Path(cfg["results_root"])
     if args.summary_only:
-        _print_summary(
-            root / "crossdataset_matrix.csv",
-            root / "generalization_gap.csv",
+        is_aug = args.augmentation != "default"
+        matrix_name = args.matrix_filename or (
+            "crossdataset_matrix_aug.csv"
+            if is_aug
+            else "crossdataset_matrix.csv"
         )
+        gap_name = args.gap_filename or (
+            "generalization_gap_aug.csv"
+            if is_aug
+            else "generalization_gap.csv"
+        )
+        _print_summary(root / matrix_name, root / gap_name)
     else:
         run_crossdataset(
             config_path=args.config,
@@ -394,4 +438,7 @@ if __name__ == "__main__":
             seeds=args.seeds,
             image_roots=_parse_image_roots(args.image_roots),
             skip_existing=not args.no_skip_existing,
+            augmentation=args.augmentation,
+            matrix_filename=args.matrix_filename,
+            gap_filename=args.gap_filename,
         )
