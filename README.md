@@ -29,7 +29,26 @@ This is an application-plus-insight contribution with three first-class layers:
 6. Cross-dataset transfer (Week 5): `python -m run_crossdataset`
 7. Diagnosis (Week 6): `python -m run_diagnosis`
 8. Mitigation (Week 7): `python -m run_crossdataset --augmentation strong`, `python -m run_lodo`, then `python -m run_mitigation`
-9. Figures: `python -m make_figures`
+9. Freeze results (Week 8): `python -m freeze_results`
+10. Generate paper artifacts: `python -m make_figures`
+
+## Week 8 result freeze
+
+The tracked publication inputs live under `frozen_results/`; the gitignored
+`results/` directory remains a runtime workspace.
+
+```bash
+python -m freeze_results
+python -m make_figures
+```
+
+The freeze command validates experiment coverage, unique keys, sample counts,
+gap arithmetic, archived manifests, metrics JSON files, and Week 7 derived
+tables. It writes `frozen_results/freeze_manifest.json` and
+`frozen_results/audit_report.md`.
+
+The figure command reads only frozen inputs and writes deterministic figures to
+`paper/figures/` and matching CSV/LaTeX tables to `paper/tables/`.
 
 ## Kaggle
 - Week 3: `notebooks/kaggle_week3.md`

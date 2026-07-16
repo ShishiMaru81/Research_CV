@@ -1,0 +1,24 @@
+\begin{tabular}{llllrrrrrrr}
+\toprule
+train_dataset & test_dataset & model & classes & seed & baseline_cross_macro_f1 & aug_cross_macro_f1 & baseline_gap & aug_gap & cross_f1_improvement & gap_reduction \\
+\midrule
+brri_rice_disease_pest & dhan_shomadhan & efficientnet_b0 & rice_blast|scald|tungro & 42 & 0.251 & 0.401 & 0.449 & 0.350 & 0.150 & 0.099 \\
+brri_rice_disease_pest & dhan_shomadhan & mobilenetv2_100 & rice_blast|scald|tungro & 42 & 0.409 & 0.396 & 0.233 & 0.313 & -0.013 & -0.080 \\
+brri_rice_disease_pest & dhan_shomadhan & resnet50 & rice_blast|scald|tungro & 42 & 0.527 & 0.456 & 0.309 & 0.386 & -0.071 & -0.077 \\
+brri_rice_disease_pest & riceleafbd & efficientnet_b0 & healthy|tungro & 42 & 0.424 & 0.469 & 0.458 & 0.290 & 0.045 & 0.168 \\
+brri_rice_disease_pest & riceleafbd & mobilenetv2_100 & healthy|tungro & 42 & 0.573 & 0.273 & 0.195 & 0.555 & -0.300 & -0.360 \\
+brri_rice_disease_pest & riceleafbd & resnet50 & healthy|tungro & 42 & 0.300 & 0.716 & 0.487 & 0.144 & 0.416 & 0.343 \\
+dhan_shomadhan & brri_rice_disease_pest & efficientnet_b0 & rice_blast|scald|tungro & 42 & 0.360 & 0.323 & 0.313 & 0.347 & -0.037 & -0.033 \\
+dhan_shomadhan & brri_rice_disease_pest & mobilenetv2_100 & rice_blast|scald|tungro & 42 & 0.296 & 0.344 & 0.313 & 0.227 & 0.049 & 0.086 \\
+dhan_shomadhan & brri_rice_disease_pest & resnet50 & rice_blast|scald|tungro & 42 & 0.373 & 0.573 & 0.201 & 0.043 & 0.200 & 0.158 \\
+dhan_shomadhan & riceleafbd & efficientnet_b0 & brown_spot|tungro & 42 & 0.524 & 0.676 & 0.372 & 0.164 & 0.152 & 0.208 \\
+dhan_shomadhan & riceleafbd & mobilenetv2_100 & brown_spot|tungro & 42 & 0.526 & 0.574 & 0.291 & 0.386 & 0.048 & -0.096 \\
+dhan_shomadhan & riceleafbd & resnet50 & brown_spot|tungro & 42 & 0.596 & 0.617 & 0.322 & 0.221 & 0.021 & 0.101 \\
+riceleafbd & brri_rice_disease_pest & efficientnet_b0 & healthy|tungro & 42 & 0.375 & 0.452 & 0.606 & 0.539 & 0.077 & 0.067 \\
+riceleafbd & brri_rice_disease_pest & mobilenetv2_100 & healthy|tungro & 42 & 0.333 & 0.504 & 0.629 & 0.467 & 0.171 & 0.162 \\
+riceleafbd & brri_rice_disease_pest & resnet50 & healthy|tungro & 42 & 0.625 & 0.719 & 0.366 & 0.281 & 0.094 & 0.084 \\
+riceleafbd & dhan_shomadhan & efficientnet_b0 & brown_spot|tungro & 42 & 0.383 & 0.420 & 0.570 & 0.548 & 0.037 & 0.022 \\
+riceleafbd & dhan_shomadhan & mobilenetv2_100 & brown_spot|tungro & 42 & 0.510 & 0.572 & 0.398 & 0.340 & 0.062 & 0.058 \\
+riceleafbd & dhan_shomadhan & resnet50 & brown_spot|tungro & 42 & 0.471 & 0.574 & 0.459 & 0.386 & 0.104 & 0.073 \\
+\bottomrule
+\end{tabular}

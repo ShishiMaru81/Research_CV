@@ -1,0 +1,13 @@
+statistic,value
+baseline_mean_cross_macro_f1,0.436366
+aug_mean_cross_macro_f1,0.503311
+mean_cross_f1_improvement,0.066945
+baseline_mean_gap,0.387233
+aug_mean_gap,0.332632
+mean_gap_reduction,0.054601
+augmentation_positive_pairs,14.000000
+gap_reduction_positive_pairs,13.000000
+lodo_positive_target_model_cells,3.000000
+lodo_mean_riceleafbd,0.499533
+lodo_mean_dhan_shomadhan,0.401645
+lodo_mean_brri_rice_disease_pest,0.203005
