@@ -1,0 +1,36 @@
+{
+  "checkpoint_path": "results/checkpoints/resnet50__train-riceleafbd__run-to-dhan_shomadhan__classes-brown_spot+tungro__aug-strong__seed42.pth",
+  "model_name": "resnet50",
+  "train_datasets": [
+    "riceleafbd"
+  ],
+  "eval_dataset": "dhan_shomadhan",
+  "split": "test",
+  "seed": 42,
+  "run_tag": "to-dhan_shomadhan__classes-brown_spot+tungro__aug-strong",
+  "classes": [
+    "brown_spot",
+    "tungro"
+  ],
+  "class_to_index": {
+    "brown_spot": 0,
+    "tungro": 1
+  },
+  "accuracy": 0.6274509803921569,
+  "macro_f1": 0.5744400527009222,
+  "per_class_f1": {
+    "brown_spot": 0.42424242424242425,
+    "tungro": 0.7246376811594203
+  },
+  "confusion_matrix": [
+    [
+      7,
+      14
+    ],
+    [
+      5,
+      25
+    ]
+  ],
+  "n_samples": 51
+}

@@ -1,0 +1,47 @@
+{
+  "checkpoint_path": "results/checkpoints/resnet50__train-dhan_shomadhan+brri_rice_disease_pest__run-lodo-holdout-riceleafbd__seed42.pth",
+  "model_name": "resnet50",
+  "train_datasets": [
+    "dhan_shomadhan",
+    "brri_rice_disease_pest"
+  ],
+  "eval_dataset": "riceleafbd",
+  "split": "test",
+  "seed": 42,
+  "run_tag": "lodo-holdout-riceleafbd",
+  "classes": [
+    "brown_spot",
+    "healthy",
+    "tungro"
+  ],
+  "class_to_index": {
+    "brown_spot": 0,
+    "healthy": 1,
+    "tungro": 2
+  },
+  "accuracy": 0.5146198830409356,
+  "macro_f1": 0.3831530788052528,
+  "per_class_f1": {
+    "brown_spot": 0.5034965034965035,
+    "healthy": 0.0,
+    "tungro": 0.6459627329192547
+  },
+  "confusion_matrix": [
+    [
+      36,
+      0,
+      18
+    ],
+    [
+      26,
+      0,
+      12
+    ],
+    [
+      27,
+      0,
+      52
+    ]
+  ],
+  "n_samples": 171
+}

@@ -1,0 +1,59 @@
+{
+  "checkpoint_path": "results/checkpoints/mobilenetv2_100__train-riceleafbd+dhan_shomadhan__run-lodo-holdout-brri_rice_disease_pest__seed42.pth",
+  "model_name": "mobilenetv2_100",
+  "train_datasets": [
+    "riceleafbd",
+    "dhan_shomadhan"
+  ],
+  "eval_dataset": "brri_rice_disease_pest",
+  "split": "test",
+  "seed": 42,
+  "run_tag": "lodo-holdout-brri_rice_disease_pest",
+  "classes": [
+    "healthy",
+    "rice_blast",
+    "scald",
+    "tungro"
+  ],
+  "class_to_index": {
+    "healthy": 0,
+    "rice_blast": 1,
+    "scald": 2,
+    "tungro": 3
+  },
+  "accuracy": 0.25084745762711863,
+  "macro_f1": 0.21562366740149053,
+  "per_class_f1": {
+    "healthy": 0.11009174311926606,
+    "rice_blast": 0.2931937172774869,
+    "scald": 0.32407407407407407,
+    "tungro": 0.13513513513513514
+  },
+  "confusion_matrix": [
+    [
+      6,
+      28,
+      46,
+      11
+    ],
+    [
+      7,
+      28,
+      58,
+      12
+    ],
+    [
+      1,
+      17,
+      35,
+      10
+    ],
+    [
+      4,
+      13,
+      14,
+      5
+    ]
+  ],
+  "n_samples": 295
+}

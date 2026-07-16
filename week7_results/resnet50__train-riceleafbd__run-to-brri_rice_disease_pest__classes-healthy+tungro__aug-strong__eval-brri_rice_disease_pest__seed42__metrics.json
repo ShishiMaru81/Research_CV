@@ -1,0 +1,36 @@
+{
+  "checkpoint_path": "results/checkpoints/resnet50__train-riceleafbd__run-to-brri_rice_disease_pest__classes-healthy+tungro__aug-strong__seed42.pth",
+  "model_name": "resnet50",
+  "train_datasets": [
+    "riceleafbd"
+  ],
+  "eval_dataset": "brri_rice_disease_pest",
+  "split": "test",
+  "seed": 42,
+  "run_tag": "to-brri_rice_disease_pest__classes-healthy+tungro__aug-strong",
+  "classes": [
+    "healthy",
+    "tungro"
+  ],
+  "class_to_index": {
+    "healthy": 0,
+    "tungro": 1
+  },
+  "accuracy": 0.7795275590551181,
+  "macro_f1": 0.7188488298545225,
+  "per_class_f1": {
+    "healthy": 0.8494623655913979,
+    "tungro": 0.5882352941176471
+  },
+  "confusion_matrix": [
+    [
+      79,
+      12
+    ],
+    [
+      16,
+      20
+    ]
+  ],
+  "n_samples": 127
+}

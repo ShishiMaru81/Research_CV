@@ -1,0 +1,36 @@
+{
+  "checkpoint_path": "results/checkpoints/mobilenetv2_100__train-brri_rice_disease_pest__run-to-riceleafbd__classes-healthy+tungro__aug-strong__seed42.pth",
+  "model_name": "mobilenetv2_100",
+  "train_datasets": [
+    "brri_rice_disease_pest"
+  ],
+  "eval_dataset": "brri_rice_disease_pest",
+  "split": "test",
+  "seed": 42,
+  "run_tag": "to-riceleafbd__classes-healthy+tungro__aug-strong",
+  "classes": [
+    "healthy",
+    "tungro"
+  ],
+  "class_to_index": {
+    "healthy": 0,
+    "tungro": 1
+  },
+  "accuracy": 0.8661417322834646,
+  "macro_f1": 0.8276797829036635,
+  "per_class_f1": {
+    "healthy": 0.9090909090909091,
+    "tungro": 0.746268656716418
+  },
+  "confusion_matrix": [
+    [
+      85,
+      6
+    ],
+    [
+      11,
+      25
+    ]
+  ],
+  "n_samples": 127
+}
