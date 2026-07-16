@@ -1,0 +1,10 @@
+target_dataset,model,baseline_single_source_macro_f1,aug_single_source_macro_f1,lodo_macro_f1,lodo_vs_single_source,aug_vs_single_source
+brri_rice_disease_pest,efficientnet_b0,0.367461,0.387347,0.126285,-0.241175,0.019886
+brri_rice_disease_pest,mobilenetv2_100,0.314303,0.424198,0.215624,-0.098679,0.109895
+brri_rice_disease_pest,resnet50,0.499046,0.646072,0.267105,-0.231941,0.147026
+dhan_shomadhan,efficientnet_b0,0.317240,0.410797,0.488668,0.171428,0.093557
+dhan_shomadhan,mobilenetv2_100,0.459447,0.484009,0.321183,-0.138264,0.024561
+dhan_shomadhan,resnet50,0.498761,0.515222,0.395083,-0.103678,0.016461
+riceleafbd,efficientnet_b0,0.474037,0.572364,0.541036,0.066998,0.098327
+riceleafbd,mobilenetv2_100,0.549253,0.423388,0.574412,0.025159,-0.125865
+riceleafbd,resnet50,0.447750,0.666407,0.383153,-0.064597,0.218656

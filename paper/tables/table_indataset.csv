@@ -1,0 +1,10 @@
+model,dataset,seed,accuracy,macro_f1,n_samples,checkpoint_path
+mobilenetv2_100,riceleafbd,42,0.893617,0.906984,235,results/checkpoints/mobilenetv2_100__train-riceleafbd__seed42.pth
+mobilenetv2_100,dhan_shomadhan,42,0.622754,0.614528,167,/kaggle/working/Research_CV/results/checkpoints/mobilenetv2_100__train-dhan_shomadhan__seed42.pth
+mobilenetv2_100,brri_rice_disease_pest,42,0.599034,0.570476,414,/kaggle/working/Research_CV/results/checkpoints/mobilenetv2_100__train-brri_rice_disease_pest__seed42.pth
+efficientnet_b0,riceleafbd,42,0.868085,0.882850,235,/kaggle/working/Research_CV/results/checkpoints/efficientnet_b0__train-riceleafbd__seed42.pth
+efficientnet_b0,dhan_shomadhan,42,0.658683,0.650376,167,/kaggle/working/Research_CV/results/checkpoints/efficientnet_b0__train-dhan_shomadhan__seed42.pth
+efficientnet_b0,brri_rice_disease_pest,42,0.673913,0.645500,414,/kaggle/working/Research_CV/results/checkpoints/efficientnet_b0__train-brri_rice_disease_pest__seed42.pth
+resnet50,riceleafbd,42,0.897872,0.912577,235,/kaggle/working/Research_CV/results/checkpoints/resnet50__train-riceleafbd__seed42.pth
+resnet50,dhan_shomadhan,42,0.610778,0.590179,167,/kaggle/working/Research_CV/results/checkpoints/resnet50__train-dhan_shomadhan__seed42.pth
+resnet50,brri_rice_disease_pest,42,0.724638,0.699318,414,/kaggle/working/Research_CV/results/checkpoints/resnet50__train-brri_rice_disease_pest__seed42.pth

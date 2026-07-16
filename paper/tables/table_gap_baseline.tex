@@ -1,0 +1,24 @@
+\begin{tabular}{llllrrrrrrrrl}
+\toprule
+train_dataset & test_dataset & model & classes & seed & in_dataset_accuracy & in_dataset_macro_f1 & cross_accuracy & cross_macro_f1 & generalization_gap & in_dataset_n & cross_n & checkpoint_path \\
+\midrule
+riceleafbd & dhan_shomadhan & mobilenetv2_100 & brown_spot|tungro & 42 & 0.910 & 0.908 & 0.510 & 0.510 & 0.398 & 133 & 51 & results/checkpoints/mobilenetv2_100__train-riceleafbd__run-to-dhan_shomadhan__classes-brown_spot+tungro__seed42.pth \\
+dhan_shomadhan & riceleafbd & mobilenetv2_100 & brown_spot|tungro & 42 & 0.824 & 0.816 & 0.526 & 0.526 & 0.291 & 51 & 133 & results/checkpoints/mobilenetv2_100__train-dhan_shomadhan__run-to-riceleafbd__classes-brown_spot+tungro__seed42.pth \\
+riceleafbd & brri_rice_disease_pest & mobilenetv2_100 & healthy|tungro & 42 & 0.966 & 0.962 & 0.346 & 0.333 & 0.629 & 117 & 127 & results/checkpoints/mobilenetv2_100__train-riceleafbd__run-to-brri_rice_disease_pest__classes-healthy+tungro__seed42.pth \\
+brri_rice_disease_pest & riceleafbd & mobilenetv2_100 & healthy|tungro & 42 & 0.811 & 0.767 & 0.573 & 0.573 & 0.195 & 127 & 117 & results/checkpoints/mobilenetv2_100__train-brri_rice_disease_pest__run-to-riceleafbd__classes-healthy+tungro__seed42.pth \\
+dhan_shomadhan & brri_rice_disease_pest & mobilenetv2_100 & rice_blast|scald|tungro & 42 & 0.631 & 0.609 & 0.475 & 0.296 & 0.313 & 103 & 204 & results/checkpoints/mobilenetv2_100__train-dhan_shomadhan__run-to-brri_rice_disease_pest__classes-rice_blast+scald+tungro__seed42.pth \\
+brri_rice_disease_pest & dhan_shomadhan & mobilenetv2_100 & rice_blast|scald|tungro & 42 & 0.701 & 0.642 & 0.417 & 0.409 & 0.233 & 204 & 103 & results/checkpoints/mobilenetv2_100__train-brri_rice_disease_pest__run-to-dhan_shomadhan__classes-rice_blast+scald+tungro__seed42.pth \\
+riceleafbd & dhan_shomadhan & efficientnet_b0 & brown_spot|tungro & 42 & 0.955 & 0.953 & 0.412 & 0.383 & 0.570 & 133 & 51 & results/checkpoints/efficientnet_b0__train-riceleafbd__run-to-dhan_shomadhan__classes-brown_spot+tungro__seed42.pth \\
+dhan_shomadhan & riceleafbd & efficientnet_b0 & brown_spot|tungro & 42 & 0.902 & 0.896 & 0.594 & 0.524 & 0.372 & 51 & 133 & results/checkpoints/efficientnet_b0__train-dhan_shomadhan__run-to-riceleafbd__classes-brown_spot+tungro__seed42.pth \\
+riceleafbd & brri_rice_disease_pest & efficientnet_b0 & healthy|tungro & 42 & 0.983 & 0.981 & 0.394 & 0.375 & 0.606 & 117 & 127 & results/checkpoints/efficientnet_b0__train-riceleafbd__run-to-brri_rice_disease_pest__classes-healthy+tungro__seed42.pth \\
+brri_rice_disease_pest & riceleafbd & efficientnet_b0 & healthy|tungro & 42 & 0.906 & 0.882 & 0.444 & 0.424 & 0.458 & 127 & 117 & results/checkpoints/efficientnet_b0__train-brri_rice_disease_pest__run-to-riceleafbd__classes-healthy+tungro__seed42.pth \\
+dhan_shomadhan & brri_rice_disease_pest & efficientnet_b0 & rice_blast|scald|tungro & 42 & 0.680 & 0.673 & 0.363 & 0.360 & 0.313 & 103 & 204 & results/checkpoints/efficientnet_b0__train-dhan_shomadhan__run-to-brri_rice_disease_pest__classes-rice_blast+scald+tungro__seed42.pth \\
+brri_rice_disease_pest & dhan_shomadhan & efficientnet_b0 & rice_blast|scald|tungro & 42 & 0.735 & 0.700 & 0.408 & 0.251 & 0.449 & 204 & 103 & results/checkpoints/efficientnet_b0__train-brri_rice_disease_pest__run-to-dhan_shomadhan__classes-rice_blast+scald+tungro__seed42.pth \\
+riceleafbd & dhan_shomadhan & resnet50 & brown_spot|tungro & 42 & 0.932 & 0.930 & 0.471 & 0.471 & 0.459 & 133 & 51 & results/checkpoints/resnet50__train-riceleafbd__run-to-dhan_shomadhan__classes-brown_spot+tungro__seed42.pth \\
+dhan_shomadhan & riceleafbd & resnet50 & brown_spot|tungro & 42 & 0.922 & 0.918 & 0.602 & 0.596 & 0.322 & 51 & 133 & results/checkpoints/resnet50__train-dhan_shomadhan__run-to-riceleafbd__classes-brown_spot+tungro__seed42.pth \\
+riceleafbd & brri_rice_disease_pest & resnet50 & healthy|tungro & 42 & 0.991 & 0.990 & 0.646 & 0.625 & 0.366 & 117 & 127 & results/checkpoints/resnet50__train-riceleafbd__run-to-brri_rice_disease_pest__classes-healthy+tungro__seed42.pth \\
+brri_rice_disease_pest & riceleafbd & resnet50 & healthy|tungro & 42 & 0.843 & 0.787 & 0.359 & 0.300 & 0.487 & 127 & 117 & results/checkpoints/resnet50__train-brri_rice_disease_pest__run-to-riceleafbd__classes-healthy+tungro__seed42.pth \\
+dhan_shomadhan & brri_rice_disease_pest & resnet50 & rice_blast|scald|tungro & 42 & 0.573 & 0.574 & 0.574 & 0.373 & 0.201 & 103 & 204 & results/checkpoints/resnet50__train-dhan_shomadhan__run-to-brri_rice_disease_pest__classes-rice_blast+scald+tungro__seed42.pth \\
+brri_rice_disease_pest & dhan_shomadhan & resnet50 & rice_blast|scald|tungro & 42 & 0.858 & 0.836 & 0.544 & 0.527 & 0.309 & 204 & 103 & results/checkpoints/resnet50__train-brri_rice_disease_pest__run-to-dhan_shomadhan__classes-rice_blast+scald+tungro__seed42.pth \\
+\bottomrule
+\end{tabular}

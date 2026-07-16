@@ -1,0 +1,81 @@
+{
+  "checks_passed": 23,
+  "files": [
+    {
+      "path": "background_confound.csv",
+      "rows": 3,
+      "sha256": "573ed21fa74bbf06c6578e12d243e29fa6a1148f3297208de41513009eab6c44",
+      "source": "week6_results/results/background_confound.csv"
+    },
+    {
+      "path": "crossdataset_matrix.csv",
+      "rows": 18,
+      "sha256": "91496ba84253467cb6f4c075de5655281580e68aecd45717bbba920447247e4b",
+      "source": "week5_progress/crossdataset_matrix.csv"
+    },
+    {
+      "path": "crossdataset_matrix_aug.csv",
+      "rows": 18,
+      "sha256": "f653bee2ec0a17d14f04d4079bc9d8f4b793ca930aae50cab5221c0b3fde7dc5",
+      "source": "week7_results/crossdataset_matrix_aug.csv"
+    },
+    {
+      "path": "generalization_gap.csv",
+      "rows": 18,
+      "sha256": "f48ea89ef74668f8514f6d0ef40c51fa8a0e6f76acbef68c72a449273d9f44b4",
+      "source": "week5_progress/generalization_gap.csv"
+    },
+    {
+      "path": "generalization_gap_aug.csv",
+      "rows": 18,
+      "sha256": "af560ad997e760d53b53c4a223d6c5af62673e0522e608858ae06cbce6e3e567",
+      "source": "week7_results/generalization_gap_aug.csv"
+    },
+    {
+      "path": "gradcam_records.csv",
+      "rows": 12,
+      "sha256": "e96f34b27841b92f3cb78a85b55d7854d8532bf3eb24d1a3ee4af8674f1a104b",
+      "source": "week6_results/results/gradcam_records.csv"
+    },
+    {
+      "path": "indataset_results.csv",
+      "rows": 9,
+      "sha256": "5c152652926cd8ac6e5c79847d39dab330ed75b74a5ecb8583fc281d0ef1aa8e",
+      "source": "week4_results/indataset_results.csv"
+    },
+    {
+      "path": "lodo_results.csv",
+      "rows": 9,
+      "sha256": "61d586c50399c2ca1931383a8bce52f4dc46490fda4c2a404ba755c0eb4a4602",
+      "source": "week7_results/lodo_results.csv"
+    },
+    {
+      "path": "manifest.csv",
+      "rows": 5419,
+      "sha256": "3a1a981ae73cded5b7dc46f6a3e479594c6d7a71af78e6779f3b3339a8c81466",
+      "source": "artifacts/manifest.csv"
+    },
+    {
+      "path": "mitigation_comparison.csv",
+      "rows": 9,
+      "sha256": "5875ffccf257c67478b57a276282310e7f8e900e72ff5a264504883888862aea",
+      "source": "week7_results/mitigation_comparison.csv"
+    },
+    {
+      "path": "mitigation_pairwise_aug.csv",
+      "rows": 18,
+      "sha256": "16253fc4c6a4167b256a563f014a085b6fc61d69dbb132ced9dde8717d9374bb",
+      "source": "week7_results/mitigation_pairwise_aug.csv"
+    }
+  ],
+  "git_commit": "13b855282369347a2f313e54ede198ce92d7b371",
+  "limitations": [
+    "One Week 5 training-history JSON is absent; its checkpoint, evaluation artifacts, and summary rows are present.",
+    "Week 7 checkpoints were not included in the downloaded result bundle.",
+    "The Week 6 Grad-CAM overlay PNG/checkpoint is unavailable locally; the 12 sample records are frozen.",
+    "All experiments use one frozen split and seed 42."
+  ],
+  "schema_version": 1,
+  "seed": 42,
+  "status": "PASS"
+}
