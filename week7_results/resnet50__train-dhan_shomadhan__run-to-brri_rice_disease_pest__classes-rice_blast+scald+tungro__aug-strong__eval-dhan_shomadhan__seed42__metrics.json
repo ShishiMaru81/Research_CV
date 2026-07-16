@@ -1,0 +1,46 @@
+{
+  "checkpoint_path": "results/checkpoints/resnet50__train-dhan_shomadhan__run-to-brri_rice_disease_pest__classes-rice_blast+scald+tungro__aug-strong__seed42.pth",
+  "model_name": "resnet50",
+  "train_datasets": [
+    "dhan_shomadhan"
+  ],
+  "eval_dataset": "dhan_shomadhan",
+  "split": "test",
+  "seed": 42,
+  "run_tag": "to-brri_rice_disease_pest__classes-rice_blast+scald+tungro__aug-strong",
+  "classes": [
+    "rice_blast",
+    "scald",
+    "tungro"
+  ],
+  "class_to_index": {
+    "rice_blast": 0,
+    "scald": 1,
+    "tungro": 2
+  },
+  "accuracy": 0.6213592233009708,
+  "macro_f1": 0.6166502369065411,
+  "per_class_f1": {
+    "rice_blast": 0.7073170731707317,
+    "scald": 0.4307692307692308,
+    "tungro": 0.711864406779661
+  },
+  "confusion_matrix": [
+    [
+      29,
+      10,
+      2
+    ],
+    [
+      12,
+      14,
+      6
+    ],
+    [
+      0,
+      9,
+      21
+    ]
+  ],
+  "n_samples": 103
+}
