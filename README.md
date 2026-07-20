@@ -31,6 +31,7 @@ This is an application-plus-insight contribution with three first-class layers:
 8. Mitigation (Week 7): `python -m run_crossdataset --augmentation strong`, `python -m run_lodo`, then `python -m run_mitigation`
 9. Freeze results (Week 8): `python -m freeze_results`
 10. Generate paper artifacts: `python -m make_figures`
+11. Paper draft (Week 9): `paper/manuscript.md`
 
 ## Week 8 result freeze
 
@@ -49,6 +50,14 @@ tables. It writes `frozen_results/freeze_manifest.json` and
 
 The figure command reads only frozen inputs and writes deterministic figures to
 `paper/figures/` and matching CSV/LaTeX tables to `paper/tables/`.
+
+## Week 9 paper draft
+
+Full manuscript: [`paper/manuscript.md`](paper/manuscript.md).  
+**Claude / LLM writing brief (all facts in one file):** [`paper/claude_paper_brief.md`](paper/claude_paper_brief.md).  
+Plan/retro: `notes/week9_plan.md`, `notes/week9_retro.md`.
+
+Week 10 is venue formatting, citations, preprint, and submission.
 
 ## Kaggle
 - Week 3: `notebooks/kaggle_week3.md`
