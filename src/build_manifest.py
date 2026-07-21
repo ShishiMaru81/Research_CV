@@ -97,8 +97,13 @@ def stratified_split_indices(count: int, seed: int) -> list[str]:
 
 def build_manifest(config_path: str = "config.yaml") -> pd.DataFrame:
     config = load_config(config_path)
-    seed = int(config.get("seed", 42))
-    set_seed(seed)
+    # Split assignment only — never conflate with train_seed / training stochasticity.
+    split_seed = int(config.get("split_seed", config.get("seed", 42)))
+    set_seed(split_seed)
+    print(
+        f"Building stratified splits with split_seed={split_seed} "
+        "(frozen for the published study; do not vary with train_seed)."
+    )
 
     data_root = Path(config["data_root"])
     results_root = Path(config["results_root"])
@@ -163,8 +168,8 @@ def build_manifest(config_path: str = "config.yaml") -> pd.DataFrame:
     grouped = manifest.groupby(["dataset", "mapped_class"], sort=True).groups
     for _, row_indices in grouped.items():
         row_idx_list = list(row_indices)
-        shuffled_indices = pd.Series(row_idx_list).sample(frac=1.0, random_state=seed).tolist()
-        splits = stratified_split_indices(len(shuffled_indices), seed)
+        shuffled_indices = pd.Series(row_idx_list).sample(frac=1.0, random_state=split_seed).tolist()
+        splits = stratified_split_indices(len(shuffled_indices), split_seed)
         for idx, split in zip(shuffled_indices, splits):
             split_assignments[idx] = split
 
