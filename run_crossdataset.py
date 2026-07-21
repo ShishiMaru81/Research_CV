@@ -8,6 +8,7 @@ import pandas as pd
 
 from src.eval import evaluate
 from src.train import train, training_stem
+from src.run_registry import RunRegistry, default_registry_path, make_run_id
 from src.utils import load_config
 
 
@@ -188,6 +189,7 @@ def run_crossdataset(
     augmentation: str = "default",
     matrix_filename: str | None = None,
     gap_filename: str | None = None,
+    output_dir: str | Path | None = None,
 ) -> tuple[Path, Path]:
     config = load_config(config_path)
     results_root = Path(config["results_root"])
@@ -215,8 +217,15 @@ def run_crossdataset(
     default_gap = (
         "generalization_gap_aug.csv" if is_augmented else "generalization_gap.csv"
     )
-    matrix_path = results_root / (matrix_filename or default_matrix)
-    gap_path = results_root / (gap_filename or default_gap)
+    output_root = Path(output_dir) if output_dir is not None else results_root
+    output_root.mkdir(parents=True, exist_ok=True)
+    matrix_path = output_root / (matrix_filename or default_matrix)
+    gap_path = output_root / (gap_filename or default_gap)
+    registry = RunRegistry(default_registry_path(results_root))
+    split_seed = int(config.get("split_seed", 42))
+    experiment_type = (
+        "transfer_aug" if is_augmented else "transfer_baseline"
+    )
 
     for pair in pairs:
         _validate_pair_classes(manifest, pair)
@@ -235,6 +244,14 @@ def run_crossdataset(
                     if is_augmented
                     else pair.run_tag
                 )
+                run_id = make_run_id(
+                    model=model_name,
+                    train_datasets=[pair.train_dataset],
+                    train_seed=seed,
+                    eval_dataset=pair.test_dataset,
+                    run_tag=effective_run_tag,
+                    augmentation=augmentation,
+                )
                 matrix_df = (
                     pd.read_csv(matrix_path)
                     if matrix_path.exists()
@@ -243,6 +260,12 @@ def run_crossdataset(
                 gap_df = (
                     pd.read_csv(gap_path) if gap_path.exists() else pd.DataFrame()
                 )
+                if skip_existing and registry.is_complete(run_id):
+                    print(
+                        "SKIP registry-complete: "
+                        f"{model_name} | {pair.key} | seed={seed}"
+                    )
+                    continue
                 if (
                     skip_existing
                     and _has_key(matrix_df, key_row)
@@ -264,6 +287,19 @@ def run_crossdataset(
                     results_root / "checkpoints" / f"{artifact_stem}.pth"
                 )
 
+                registry.register_run(
+                    run_id=run_id,
+                    experiment_type=experiment_type,
+                    model=model_name,
+                    train_datasets=[pair.train_dataset],
+                    eval_dataset=pair.test_dataset,
+                    classes=classes,
+                    split_seed=split_seed,
+                    train_seed=seed,
+                    augmentation=augmentation,
+                    checkpoint_path=checkpoint_path if checkpoint_path.exists() else None,
+                )
+
                 if checkpoint_path.exists():
                     print(
                         "\nREUSE checkpoint after interruption: "
@@ -280,7 +316,8 @@ def run_crossdataset(
                         train_datasets=[pair.train_dataset],
                         classes=classes,
                         config=config,
-                        seed=seed,
+                        train_seed=seed,
+                        split_seed=split_seed,
                         eval_dataset=pair.train_dataset,
                         image_roots=image_roots,
                         run_tag=effective_run_tag,
@@ -296,7 +333,8 @@ def run_crossdataset(
                     eval_dataset=pair.train_dataset,
                     classes=classes,
                     split="test",
-                    seed=seed,
+                    train_seed=seed,
+                    split_seed=split_seed,
                     config_path=config_path,
                     sample_n=5,
                     image_roots=image_roots,
@@ -311,7 +349,8 @@ def run_crossdataset(
                     eval_dataset=pair.test_dataset,
                     classes=classes,
                     split="test",
-                    seed=seed,
+                    train_seed=seed,
+                    split_seed=split_seed,
                     config_path=config_path,
                     sample_n=10,
                     image_roots=image_roots,
@@ -351,6 +390,11 @@ def run_crossdataset(
                 }
                 _upsert_csv(matrix_path, matrix_row)
                 _upsert_csv(gap_path, gap_row)
+                registry.mark_complete(
+                    run_id,
+                    checkpoint_path=checkpoint_path,
+                    predictions_path=cross.get("predictions_path"),
+                )
                 print(
                     "RECORDED: "
                     f"{model_name} | {pair.key} | "

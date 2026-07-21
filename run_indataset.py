@@ -7,6 +7,7 @@ import pandas as pd
 
 from src.eval import evaluate
 from src.train import discover_classes, train
+from src.run_registry import RunRegistry, default_registry_path, make_run_id
 from src.utils import load_config
 
 
@@ -98,11 +99,27 @@ def run_indataset(
 
     out_csv = results_root / "indataset_results.csv"
     existing = pd.read_csv(out_csv) if out_csv.exists() else pd.DataFrame()
+    registry = RunRegistry(default_registry_path(results_root))
+    split_seed = int(config.get("split_seed", 42))
 
     for model_name in models:
         for dataset in datasets:
             classes = discover_classes(manifest_path, [dataset])
             for seed in seeds:
+                run_id = make_run_id(
+                    model=model_name,
+                    train_datasets=[dataset],
+                    train_seed=seed,
+                    eval_dataset=dataset,
+                    run_tag=None,
+                    augmentation="default",
+                )
+                if skip_existing and registry.is_complete(run_id):
+                    print(
+                        f"SKIP registry-complete: {model_name} | "
+                        f"{dataset} | seed={seed}"
+                    )
+                    continue
                 if skip_existing and not existing.empty:
                     hit = existing[
                         (existing["model"] == model_name)
@@ -115,12 +132,24 @@ def run_indataset(
 
                 print(f"\n=== TRAIN {model_name} on {dataset} (seed={seed}) ===")
                 print(f"classes ({len(classes)}): {classes}")
+                registry.register_run(
+                    run_id=run_id,
+                    experiment_type="indataset",
+                    model=model_name,
+                    train_datasets=[dataset],
+                    eval_dataset=dataset,
+                    classes=classes,
+                    split_seed=split_seed,
+                    train_seed=seed,
+                    augmentation="default",
+                )
                 checkpoint_path, _ = train(
                     model_name=model_name,
                     train_datasets=[dataset],
                     classes=classes,
                     config=config,
-                    seed=seed,
+                    train_seed=seed,
+                    split_seed=split_seed,
                     eval_dataset=dataset,
                     image_roots=image_roots,
                 )
@@ -131,7 +160,8 @@ def run_indataset(
                     eval_dataset=dataset,
                     classes=classes,
                     split="test",
-                    seed=seed,
+                    train_seed=seed,
+                    split_seed=split_seed,
                     config_path=config_path,
                     sample_n=5,
                     image_roots=image_roots,
@@ -147,6 +177,11 @@ def run_indataset(
                     "checkpoint_path": str(checkpoint_path),
                 }
                 _append_result(out_csv, row)
+                registry.mark_complete(
+                    run_id,
+                    checkpoint_path=checkpoint_path,
+                    predictions_path=metrics.get("predictions_path"),
+                )
                 print(
                     f"RECORDED: {model_name} | {dataset} | seed={seed} | "
                     f"acc={row['accuracy']:.4f} | macro_f1={row['macro_f1']:.4f}"

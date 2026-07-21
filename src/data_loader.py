@@ -12,7 +12,7 @@ import torch
 from albumentations.pytorch import ToTensorV2
 from torch.utils.data import DataLoader, Dataset
 
-from src.utils import load_config
+from src.utils import load_config, make_torch_generator, seed_worker
 
 
 IMAGENET_MEAN = (0.485, 0.456, 0.406)
@@ -306,6 +306,7 @@ def make_loaders(
     path_remap: tuple[str, str] | None = None,
     image_root: str | None = None,
     image_roots: dict[str, str] | None = None,
+    train_seed: int | None = None,
 ) -> tuple[DataLoader, DataLoader, DataLoader, dict[str, Any]]:
     config = load_config()
     resolved_manifest = (
@@ -374,9 +375,32 @@ def make_loaders(
         eval_rows, class_to_index, eval_transform, verify_images=verify_images
     )
 
-    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=0)
-    val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, num_workers=0)
-    eval_loader = DataLoader(eval_dataset_obj, batch_size=batch_size, shuffle=False, num_workers=0)
+    # Shuffle generator is tied to train_seed (training stochasticity), never to
+    # split assignment — splits come from the frozen manifest column.
+    train_loader_kwargs: dict[str, Any] = {
+        "batch_size": batch_size,
+        "shuffle": True,
+        "num_workers": 0,
+        "worker_init_fn": seed_worker,
+    }
+    if train_seed is not None:
+        train_loader_kwargs["generator"] = make_torch_generator(train_seed)
+
+    train_loader = DataLoader(train_dataset, **train_loader_kwargs)
+    val_loader = DataLoader(
+        val_dataset,
+        batch_size=batch_size,
+        shuffle=False,
+        num_workers=0,
+        worker_init_fn=seed_worker,
+    )
+    eval_loader = DataLoader(
+        eval_dataset_obj,
+        batch_size=batch_size,
+        shuffle=False,
+        num_workers=0,
+        worker_init_fn=seed_worker,
+    )
 
     class_weights = _compute_class_weights(train_rows, class_to_index) if return_class_weights else None
     meta = LoaderMeta(
