@@ -44,6 +44,8 @@ We use three Bangladeshi rice leaf disease collections (originals only):
 | Dataset | Role in study | Approx. original images used |
 |---------|---------------|------------------------------|
 | RiceLeafBD | Field-oriented leaf disease images | 1,560 |
+
+RiceLeafBD contributes **1,560** original images in the released archive we use (422+356+252+530 by class inventory); the source descriptor reports 1,555—we use the archive count after file-level verification.
 | Dhan-Shomadhan | Field and white-background subsets | 1,106 |
 | BRRI Rice Leaf Disease and Pest | Station/field originals (augmented archive excluded) | 2,753 |
 
@@ -88,7 +90,7 @@ Default training augmentation is mild geometric/photometric jitter. Evaluation t
 
 ### 4.2 Metrics
 
-Primary metric: **macro-F1**. We also report accuracy and per-class F1. The **generalization gap** for a transfer run is:
+Primary metric: **macro-F1**. We also report accuracy and per-class F1. On RiceLeafBD, macro-F1 often exceeds accuracy (e.g., ResNet50: 0.913 vs 0.898) because class-weighted cross-entropy lifts recall on minority classes more than it lifts overall accuracy. The **generalization gap** for a transfer run is:
 
 \[
 \text{gap} = \text{macro-F1}_{\text{source test}} - \text{macro-F1}_{\text{target test}}
@@ -104,7 +106,7 @@ For each of 6 ordered pairs × 3 models (18 runs), train on the source shared-cl
 
 **Representative setting:** ResNet50 trained on Dhan-Shomadhan with shared classes `{brown_spot, tungro}`, evaluated toward RiceLeafBD.
 
-- **Grad-CAM:** Overlays on correct and incorrect RiceLeafBD predictions; border-attention enrichment is a reproducible proxy (uniform heatmap = 1.0), not lesion segmentation.
+- **Grad-CAM:** Overlays on correct and incorrect RiceLeafBD predictions. **Border-attention enrichment** is computed from a normalized Grad-CAM map \(H\) (non-negative, summing to 1 over spatial locations). Let \(B\) be the border band comprising the outer **20%** of height and width on each side. Then \(\text{enrichment} = \mathrm{mean}(H[B]) / \mathrm{mean}(H)\); a uniform map yields 1.0. This is a reproducible background-attention proxy, not lesion segmentation.
 - **Background confound:** Same checkpoint evaluated on (i) Dhan white-background test, (ii) Dhan field-background test, (iii) RiceLeafBD field test. Prespecified descriptive support criterion: white macro-F1 > field macro-F1 **and** white macro-F1 > cross-dataset field macro-F1.
 
 Figure: `fig04_background_confound.png`. Table: `table_background_confound`.

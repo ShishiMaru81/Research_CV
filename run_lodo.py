@@ -9,6 +9,7 @@ import pandas as pd
 
 from src.eval import evaluate
 from src.train import train, training_stem
+from src.run_registry import RunRegistry, default_registry_path, make_run_id
 from src.utils import load_config
 
 DEFAULT_MODELS = ["mobilenetv2_100", "efficientnet_b0", "resnet50"]
@@ -132,6 +133,8 @@ def run_lodo(
     image_roots: dict[str, str] | None = None,
     skip_existing: bool = True,
     augmentation: str = "default",
+    output_dir: str | Path | None = None,
+    results_filename: str = "lodo_results.csv",
 ) -> Path:
     config = load_config(config_path)
     results_root = Path(config["results_root"])
@@ -148,7 +151,11 @@ def run_lodo(
         int(seed) for seed in config.get("seeds", [config.get("seed", 42)])
     ]
     splits = build_lodo_splits(manifest)
-    results_path = results_root / "lodo_results.csv"
+    output_root = Path(output_dir) if output_dir is not None else results_root
+    output_root.mkdir(parents=True, exist_ok=True)
+    results_path = output_root / results_filename
+    registry = RunRegistry(default_registry_path(results_root))
+    split_seed = int(config.get("split_seed", 42))
 
     for split in splits:
         classes = list(split.classes)
@@ -163,11 +170,25 @@ def run_lodo(
                     "model": model_name,
                     "seed": seed,
                 }
+                run_id = make_run_id(
+                    model=model_name,
+                    train_datasets=list(split.train_datasets),
+                    train_seed=seed,
+                    eval_dataset=split.held_out,
+                    run_tag=split.run_tag,
+                    augmentation=augmentation,
+                )
                 existing = (
                     pd.read_csv(results_path)
                     if results_path.exists()
                     else pd.DataFrame()
                 )
+                if skip_existing and registry.is_complete(run_id):
+                    print(
+                        f"SKIP registry-complete: {model_name} | "
+                        f"holdout={split.held_out} | seed={seed}"
+                    )
+                    continue
                 if skip_existing and _has_key(existing, key_row):
                     print(
                         f"SKIP completed: {model_name} | "
@@ -185,6 +206,19 @@ def run_lodo(
                     results_root / "checkpoints" / f"{artifact_stem}.pth"
                 )
 
+                registry.register_run(
+                    run_id=run_id,
+                    experiment_type="lodo",
+                    model=model_name,
+                    train_datasets=list(split.train_datasets),
+                    eval_dataset=split.held_out,
+                    classes=classes,
+                    split_seed=split_seed,
+                    train_seed=seed,
+                    augmentation=augmentation,
+                    checkpoint_path=checkpoint_path if checkpoint_path.exists() else None,
+                )
+
                 if checkpoint_path.exists():
                     print(f"\nREUSE checkpoint after interruption: {checkpoint_path}")
                 else:
@@ -198,7 +232,8 @@ def run_lodo(
                         train_datasets=list(split.train_datasets),
                         classes=classes,
                         config=config,
-                        seed=seed,
+                        train_seed=seed,
+                        split_seed=split_seed,
                         eval_dataset=split.held_out,
                         image_roots=image_roots,
                         run_tag=split.run_tag,
@@ -211,7 +246,8 @@ def run_lodo(
                     eval_dataset=split.held_out,
                     classes=classes,
                     split="test",
-                    seed=seed,
+                    train_seed=seed,
+                    split_seed=split_seed,
                     config_path=config_path,
                     sample_n=10,
                     image_roots=image_roots,
@@ -229,6 +265,11 @@ def run_lodo(
                     "checkpoint_path": str(checkpoint_path),
                 }
                 _upsert_csv(results_path, row)
+                registry.mark_complete(
+                    run_id,
+                    checkpoint_path=checkpoint_path,
+                    predictions_path=result.get("predictions_path"),
+                )
                 print(
                     f"RECORDED: {model_name} | holdout={split.held_out} | "
                     f"macro_f1={result['macro_f1']:.4f} | "

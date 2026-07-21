@@ -74,7 +74,8 @@ def ensure_diagnostic_checkpoint(
         train_datasets=[TRAIN_DATASET],
         classes=DIAGNOSIS_CLASSES,
         config=config,
-        seed=seed,
+        train_seed=seed,
+        split_seed=int(config.get("split_seed", 42)),
         eval_dataset=TRAIN_DATASET,
         image_roots=image_roots,
         run_tag=RUN_TAG,
@@ -115,7 +116,7 @@ def _condition_metrics(
     device: torch.device,
     classes: list[str],
 ) -> dict[str, Any]:
-    _, labels, predictions = collect_predictions(model, loader, device)
+    _, labels, predictions, _ = collect_predictions(model, loader, device)
     per_class_values = f1_score(
         labels,
         predictions,
