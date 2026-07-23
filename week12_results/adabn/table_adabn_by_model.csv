@@ -1,0 +1,4 @@
+model,mean_baseline,mean_adabn,mean_delta,std_delta,n_improve,n
+efficientnet_b0,0.379,0.319,-0.06,0.119,2,6
+mobilenetv2_100,0.385,0.398,0.013,0.156,3,6
+resnet50,0.483,0.363,-0.119,0.071,0,6
