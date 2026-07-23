@@ -209,23 +209,26 @@ def run_crossdataset(
     ]
 
     is_augmented = augmentation != "default"
-    default_matrix = (
-        "crossdataset_matrix_aug.csv"
-        if is_augmented
-        else "crossdataset_matrix.csv"
-    )
-    default_gap = (
-        "generalization_gap_aug.csv" if is_augmented else "generalization_gap.csv"
-    )
+    is_bucket = augmentation.startswith("bucket-")
+    if is_bucket:
+        bucket_tag = augmentation.replace("bucket-", "")
+        default_matrix = f"crossdataset_matrix_bucket_{bucket_tag}.csv"
+        default_gap = f"generalization_gap_bucket_{bucket_tag}.csv"
+        experiment_type = "transfer_aug_bucket"
+    elif is_augmented:
+        default_matrix = "crossdataset_matrix_aug.csv"
+        default_gap = "generalization_gap_aug.csv"
+        experiment_type = "transfer_aug"
+    else:
+        default_matrix = "crossdataset_matrix.csv"
+        default_gap = "generalization_gap.csv"
+        experiment_type = "transfer_baseline"
     output_root = Path(output_dir) if output_dir is not None else results_root
     output_root.mkdir(parents=True, exist_ok=True)
     matrix_path = output_root / (matrix_filename or default_matrix)
     gap_path = output_root / (gap_filename or default_gap)
     registry = RunRegistry(default_registry_path(results_root))
     split_seed = int(config.get("split_seed", 42))
-    experiment_type = (
-        "transfer_aug" if is_augmented else "transfer_baseline"
-    )
 
     for pair in pairs:
         _validate_pair_classes(manifest, pair)
@@ -436,8 +439,17 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--augmentation",
         default="default",
-        choices=["default", "strong"],
-        help="Train-time augmentation profile. 'strong' is the Week 7 mitigation.",
+        choices=[
+            "default",
+            "strong",
+            "bucket-geo",
+            "bucket-photo",
+            "bucket-occlusion",
+        ],
+        help=(
+            "Train-time augmentation profile. 'strong' is the Week 7 mitigation; "
+            "bucket-* profiles are the Week 13 ablation arms."
+        ),
     )
     parser.add_argument(
         "--matrix_filename",
