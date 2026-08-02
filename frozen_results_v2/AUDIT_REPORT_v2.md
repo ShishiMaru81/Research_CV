@@ -2,10 +2,10 @@
 
 **Status: PASS_WITH_WARNINGS**
 
-- Git commit at freeze: `48e37609237124d8c085bd05522a073ca2f85fc4`
+- Git commit at freeze: `1e30488623c936b42bb5d2072203c45f67007270`
 - v1 freeze manifest commit hint: `88f8c5d5d4ce8ef08fb84ff14b7d0fac696b5fb3`
-- Checks: 23
-- Warnings: 2
+- Checks: 25
+- Warnings: 1
 
 ## Checks
 
@@ -24,6 +24,7 @@
 - transfer_cell_mean_std.csv: copied from revision overlay (36 rows)
 - lodo_all_seeds.csv: copied from revision overlay (27 rows)
 - adabn_results.csv: copied from revision overlay (18 rows)
+- augmentation_ablation.csv: copied from revision overlay (18 rows)
 - stats_tests.csv: copied from revision overlay (4 rows)
 - seed_variance.csv: copied from revision overlay (36 rows)
 - bootstrap_ci.csv: copied from revision overlay (19 rows)
@@ -32,10 +33,10 @@
 - seed coverage OK: seed=7 aug=default = 18
 - seed coverage OK: seed=7 aug=strong = 18
 - seed coverage OK: seed=2024 aug=default = 18
+- ablation rows: 18 (>=18)
 
 ## Warnings
 
-- optional missing: D:/Research_Own/Research_CV/results/ablation/augmentation_ablation.csv
 - seed coverage incomplete: seed=2024 aug=strong has 6, expected 18
 
 ## Policy
