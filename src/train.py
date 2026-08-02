@@ -394,8 +394,17 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--augmentation",
         default="default",
-        choices=["default", "strong"],
-        help="Train-time augmentation profile (default or strong).",
+        choices=[
+            "default",
+            "strong",
+            "bucket-geo",
+            "bucket-photo",
+            "bucket-occlusion",
+        ],
+        help=(
+            "Train-time augmentation profile: default, strong, "
+            "or Phase-3 buckets (bucket-geo|bucket-photo|bucket-occlusion)."
+        ),
     )
     return parser.parse_args()
 

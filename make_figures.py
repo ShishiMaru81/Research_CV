@@ -243,6 +243,197 @@ def figure_lodo(results: Path, output: Path) -> None:
     _save(fig, output)
 
 
+def figure_aug_paired_seed(transfer_path: Path, output: Path) -> None:
+    """Baseline vs strong cross F1 with one marker per train seed."""
+    df = pd.read_csv(transfer_path)
+    paired_keys = ["train_dataset", "test_dataset", "model", "seed"]
+    base = df[df["augmentation"] == "default"][paired_keys + ["cross_macro_f1"]]
+    strong = df[df["augmentation"] == "strong"][paired_keys + ["cross_macro_f1"]]
+    base = base.rename(columns={"cross_macro_f1": "baseline"})
+    strong = strong.rename(columns={"cross_macro_f1": "strong"})
+    paired = base.merge(strong, on=paired_keys, how="inner")
+
+    fig, axes = plt.subplots(1, 3, figsize=(13.5, 4.4), sharex=True, sharey=True)
+    for ax, model in zip(axes, MODELS):
+        subset = paired[paired["model"] == model]
+        for seed, marker in zip(sorted(subset["seed"].unique()), ["o", "s", "^"]):
+            pts = subset[subset["seed"] == seed]
+            ax.scatter(
+                pts["baseline"],
+                pts["strong"],
+                marker=marker,
+                s=36,
+                alpha=0.85,
+                label=f"seed {seed}",
+            )
+        lims = [0.0, 1.0]
+        ax.plot(lims, lims, color="0.5", linewidth=1.0, linestyle="--")
+        ax.set_xlim(lims)
+        ax.set_ylim(lims)
+        ax.set_title(MODEL_LABELS[model])
+        ax.set_xlabel("Baseline cross macro-F1")
+        if ax is axes[0]:
+            ax.set_ylabel("Strong-aug cross macro-F1")
+            ax.legend(frameon=False, fontsize=8)
+    fig.suptitle("Augmentation vs baseline (per seed)", y=1.02, fontweight="bold")
+    fig.tight_layout()
+    _save(fig, output)
+
+
+def figure_ablation_buckets(ablation_path: Path, output: Path) -> None:
+    df = pd.read_csv(ablation_path)
+    if "bucket" not in df.columns and "augmentation" in df.columns:
+        df["bucket"] = (
+            df["augmentation"].astype(str).str.replace("bucket-", "", regex=False)
+        )
+    order = ["geo", "photo", "occlusion"]
+    labels = ["Geometric", "Photometric", "Occlusion"]
+    means = [df.loc[df["bucket"] == bucket, "macro_f1"].mean() for bucket in order]
+    fig, ax = plt.subplots(figsize=(7.2, 4.4))
+    bars = ax.bar(labels, means, color=sns.color_palette("colorblind", 3))
+    ax.bar_label(bars, fmt="%.3f", padding=3)
+    ax.set_ylim(0, 1.0)
+    ax.set_ylabel("Mean cross macro-F1 (ResNet50)")
+    ax.set_title("Augmentation bucket ablation")
+    fig.tight_layout()
+    _save(fig, output)
+
+
+def figure_adabn_delta(adabn_path: Path, output: Path) -> None:
+    df = pd.read_csv(adabn_path).copy()
+    df["pair"] = (
+        df["train_dataset"].map(DATASET_LABELS)
+        + "→"
+        + df["test_dataset"].map(DATASET_LABELS)
+    )
+    pivot = (
+        df.pivot(index="pair", columns="model", values="delta_macro_f1")
+        .reindex(columns=MODELS)
+    )
+    pivot.columns = [MODEL_LABELS[item] for item in MODELS]
+    bound = max(0.25, float(np.nanmax(np.abs(pivot.to_numpy()))))
+    fig, ax = plt.subplots(figsize=(9.0, 5.4))
+    sns.heatmap(
+        pivot,
+        ax=ax,
+        annot=True,
+        fmt=".2f",
+        cmap="vlag",
+        center=0.0,
+        vmin=-bound,
+        vmax=bound,
+        linewidths=0.4,
+    )
+    ax.set_title("AdaBN Δ macro-F1 (recalibrated − baseline)")
+    ax.set_xlabel("Model")
+    ax.set_ylabel("Transfer pair")
+    fig.tight_layout()
+    _save(fig, output)
+
+
+def figure_seed_std_heatmap(variance_path: Path, output: Path) -> None:
+    df = pd.read_csv(variance_path)
+    df = df[df["augmentation"] == "default"].copy()
+    fig, axes = plt.subplots(1, 3, figsize=(12.8, 3.8), sharex=True, sharey=True)
+    for ax, model in zip(axes, MODELS):
+        matrix = (
+            df[df["model"] == model]
+            .pivot(index="train_dataset", columns="test_dataset", values="std_cross_f1")
+            .reindex(index=DATASETS, columns=DATASETS)
+        )
+        sns.heatmap(
+            matrix,
+            ax=ax,
+            annot=True,
+            fmt=".3f",
+            cmap="Oranges",
+            vmin=0,
+            vmax=0.15,
+            square=True,
+            linewidths=0.5,
+            cbar=ax is axes[-1],
+            mask=matrix.isna(),
+        )
+        ax.set_title(MODEL_LABELS[model])
+        ax.set_xlabel("Test dataset")
+        ax.set_ylabel("Train dataset" if ax is axes[0] else "")
+        ax.set_xticklabels([DATASET_LABELS[item] for item in DATASETS], rotation=30)
+        ax.set_yticklabels([DATASET_LABELS[item] for item in DATASETS], rotation=0)
+    fig.suptitle(
+        "Across-seed std of baseline cross macro-F1", y=1.03, fontweight="bold"
+    )
+    fig.tight_layout()
+    _save(fig, output)
+
+
+def generate_revision_figures(
+    *,
+    figures: Path = DEFAULT_FIGURES,
+    transfer_path: Path | None = None,
+    ablation_path: Path | None = None,
+    adabn_path: Path | None = None,
+    variance_path: Path | None = None,
+) -> list[Path]:
+    """Phase-4 figures that depend on revision overlays (not the Week-8 freeze)."""
+    _configure_style()
+    figures.mkdir(parents=True, exist_ok=True)
+    transfer_path = transfer_path or (
+        ROOT / "week11_results" / "multiseed" / "transfer_all_seeds.csv"
+    )
+    ablation_path = ablation_path or (
+        ROOT / "results" / "ablation" / "augmentation_ablation.csv"
+    )
+    adabn_path = adabn_path or (ROOT / "adabn_results.csv")
+    variance_path = variance_path or (ROOT / "results" / "stats" / "seed_variance.csv")
+
+    jobs: list[tuple[str, Callable[[], None]]] = []
+
+    if transfer_path.exists():
+        out = figures / "fig10_aug_paired_seed.png"
+        jobs.append(
+            (
+                "fig10_aug_paired_seed.png",
+                lambda o=out, p=transfer_path: figure_aug_paired_seed(p, o),
+            )
+        )
+    if ablation_path.exists():
+        out = figures / "fig11_ablation_buckets.png"
+        jobs.append(
+            (
+                "fig11_ablation_buckets.png",
+                lambda o=out, p=ablation_path: figure_ablation_buckets(p, o),
+            )
+        )
+    if adabn_path.exists():
+        out = figures / "fig12_adabn_delta.png"
+        jobs.append(
+            (
+                "fig12_adabn_delta.png",
+                lambda o=out, p=adabn_path: figure_adabn_delta(p, o),
+            )
+        )
+    if variance_path.exists():
+        out = figures / "fig13_seed_std_heatmap.png"
+        jobs.append(
+            (
+                "fig13_seed_std_heatmap.png",
+                lambda o=out, p=variance_path: figure_seed_std_heatmap(p, o),
+            )
+        )
+
+    if not jobs:
+        print("No revision figure inputs found; nothing to write.")
+        return []
+
+    outputs: list[Path] = []
+    for filename, job in jobs:
+        job()
+        path = figures / filename
+        outputs.append(path)
+        print(f"Wrote: {path}")
+    return outputs
+
+
 def _write_table(df: pd.DataFrame, stem: Path) -> list[Path]:
     stem.parent.mkdir(parents=True, exist_ok=True)
     csv_path = stem.with_suffix(".csv")
@@ -411,9 +602,17 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--results", type=Path, default=DEFAULT_RESULTS)
     parser.add_argument("--figures", type=Path, default=DEFAULT_FIGURES)
     parser.add_argument("--tables", type=Path, default=DEFAULT_TABLES)
+    parser.add_argument(
+        "--revision",
+        action="store_true",
+        help="Generate Phase-4 revision figures (multi-seed / AdaBN / ablation).",
+    )
     return parser.parse_args()
 
 
 if __name__ == "__main__":
     args = parse_args()
-    generate_all(args.results, args.figures, args.tables)
+    if args.revision:
+        generate_revision_figures(figures=args.figures)
+    else:
+        generate_all(args.results, args.figures, args.tables)

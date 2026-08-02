@@ -50,6 +50,24 @@ def default_eval_transform(image_size: int) -> A.Compose:
     )
 
 
+AUGMENTATION_PROFILES = (
+    "default",
+    "strong",
+    "bucket-geo",
+    "bucket-photo",
+    "bucket-occlusion",
+)
+
+BUCKET_PROFILES = ("bucket-geo", "bucket-photo", "bucket-occlusion")
+
+
+def _normalize_to_tensor() -> list[A.BasicTransform]:
+    return [
+        A.Normalize(mean=IMAGENET_MEAN, std=IMAGENET_STD),
+        ToTensorV2(),
+    ]
+
+
 def strong_train_transform(image_size: int) -> A.Compose:
     """Aggressive Week 7 augmentation targeting the background confound.
 
@@ -90,21 +108,85 @@ def strong_train_transform(image_size: int) -> A.Compose:
                 fill="random_uniform",
                 p=0.4,
             ),
-            A.Normalize(mean=IMAGENET_MEAN, std=IMAGENET_STD),
-            ToTensorV2(),
+            *_normalize_to_tensor(),
+        ]
+    )
+
+
+def bucket_geo_train_transform(image_size: int) -> A.Compose:
+    """Geometric/background bucket alone (crop, flip, affine)."""
+    return A.Compose(
+        [
+            A.RandomResizedCrop(
+                size=(image_size, image_size),
+                scale=(0.6, 1.0),
+                ratio=(0.75, 1.3333333333333333),
+                p=1.0,
+            ),
+            A.HorizontalFlip(p=0.5),
+            A.Affine(
+                translate_percent={"x": (-0.06, 0.06), "y": (-0.06, 0.06)},
+                scale=(0.9, 1.1),
+                rotate=(-20, 20),
+                p=0.7,
+            ),
+            *_normalize_to_tensor(),
+        ]
+    )
+
+
+def bucket_photo_train_transform(image_size: int) -> A.Compose:
+    """Photometric bucket alone (brightness/contrast + hue/sat/val)."""
+    return A.Compose(
+        [
+            A.Resize(image_size, image_size),
+            A.RandomBrightnessContrast(
+                brightness_limit=0.2, contrast_limit=0.2, p=0.5
+            ),
+            A.HueSaturationValue(
+                hue_shift_limit=15,
+                sat_shift_limit=25,
+                val_shift_limit=15,
+                p=0.5,
+            ),
+            *_normalize_to_tensor(),
+        ]
+    )
+
+
+def bucket_occlusion_train_transform(image_size: int) -> A.Compose:
+    """Occlusion/blur bucket alone (GaussianBlur + CoarseDropout)."""
+    return A.Compose(
+        [
+            A.Resize(image_size, image_size),
+            A.GaussianBlur(blur_limit=(3, 5), p=0.2),
+            A.CoarseDropout(
+                num_holes_range=(1, 4),
+                hole_height_range=(0.08, 0.18),
+                hole_width_range=(0.08, 0.18),
+                fill="random_uniform",
+                p=0.4,
+            ),
+            *_normalize_to_tensor(),
         ]
     )
 
 
 def build_train_transform(image_size: int, augmentation: str = "default") -> A.Compose:
     """Return the train-time transform for a named augmentation profile."""
-    if augmentation == "strong":
-        return strong_train_transform(image_size)
-    if augmentation == "default":
-        return default_train_transform(image_size)
-    raise ValueError(
-        f"Unknown augmentation profile '{augmentation}'. Use 'default' or 'strong'."
-    )
+    builders = {
+        "default": default_train_transform,
+        "strong": strong_train_transform,
+        "bucket-geo": bucket_geo_train_transform,
+        "bucket-photo": bucket_photo_train_transform,
+        "bucket-occlusion": bucket_occlusion_train_transform,
+    }
+    if augmentation not in builders:
+        raise ValueError(
+            f"Unknown augmentation profile '{augmentation}'. "
+            f"Use one of: {', '.join(AUGMENTATION_PROFILES)}."
+        )
+    return builders[augmentation](image_size)
 
 
 class ManifestImageDataset(Dataset[tuple[torch.Tensor, int, str]]):
