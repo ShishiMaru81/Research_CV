@@ -1,7 +1,7 @@
 # Cross-Dataset Generalization of Bangladeshi Rice Leaf Disease Classifiers: Benchmark, Diagnosis, and Mitigation
 
-**Draft manuscript (Week 9 + Weeks 12–14 revision)**  
-Venue-agnostic Markdown. Core numbers and figures are from the frozen Week 8 release (`frozen_results/`, `paper/figures/`, `paper/tables`). Seed = 42 throughout for the Week 5–7 core. AdaBN (§5.6), augmentation bucket ablation (§5.7), and multi-seed/stats (§5.8) use revision overlays in `frozen_results_v2/`. Camera-ready mean ± std tables still await complete seed-2024 strong-aug cells (12/18 missing locally).
+**Camera-ready draft (Phase 5 revision)**  
+Venue-agnostic Markdown. Week 5–7 core numbers are from the frozen Week 8 release (`frozen_results/`). AdaBN (§5.6), augmentation bucket ablation (§5.7), multi-seed aggregates (§5.8), and inferential statistics use revision overlays in `frozen_results_v2/` and `week11_results/multiseed/`. Strong-augmentation seed-2024 cells are complete for baseline/default runs; **12 of 18** strong-aug cells still lack seed 2024 locally (mean ± std for strong aug therefore uses 2–3 seeds per cell as available).
 
 ---
 
@@ -9,7 +9,7 @@ Venue-agnostic Markdown. Core numbers and figures are from the frozen Week 8 rel
 
 Deep learning models for rice leaf disease recognition often report strong in-dataset accuracy, yet their reliability across independently collected Bangladeshi datasets remains poorly characterized. We study cross-dataset generalization over three original-image collections—RiceLeafBD, Dhan-Shomadhan, and the BRRI Rice Leaf Disease and Pest dataset—after label harmonization, exclusion of pre-augmented images, and freezing of stratified 70/15/15 splits (5,419 images; seed 42). Using MobileNetV2, EfficientNet-B0, and ResNet50, we (i) measure a transfer benchmark and generalization gap on six ordered shared-class pairs, (ii) diagnose failure via Grad-CAM inspection and a background-confound evaluation, and (iii) test three standard mitigations: strong train-only augmentation, leave-one-dataset-out (LODO) training, and Adaptive Batch Normalization (AdaBN).
 
-In-dataset mean macro-F1 is 0.719, while matched cross-dataset mean macro-F1 falls to 0.436 (mean gap 0.387). A Dhan-trained ResNet50 evaluated on white-background, field-background, and cross-dataset field tests yields macro-F1 0.854, 0.705, and 0.573, meeting a prespecified ordering that implicates acquisition/background shift. Strong augmentation raises mean cross-domain macro-F1 from 0.436 to 0.503 (14/18 pairs at seed 42; Wilcoxon *p* ≈ 0.008 over three train seeds, with mean paired gain +0.063 comparable to the cross-seed noise floor ±0.057). ResNet50 benefits most under full strong augmentation (0.609 mean cross F1 on six pairs). A bucket ablation on those pairs shows geometric/background transforms alone yield the largest gain (mean cross F1 0.567, Δ +0.085 vs baseline), recovering about two-thirds of the full strong-aug improvement; photometric and occlusion buckets contribute less on average. LODO improves only 3 of 9 target/model comparisons and collapses on held-out BRRI (mean macro-F1 0.203). AdaBN improves only 5/18 pairs (mean Δ −0.055, *p* ≈ 0.10) and never helps ResNet50. We conclude that strong augmentation—especially geometric randomization—is the most reliable simple mitigation among those tested, while LODO and AdaBN are largely unsuccessful on this benchmark and residual gaps underscore persistent domain dependence.
+In-dataset mean macro-F1 is 0.719, while matched cross-dataset mean macro-F1 falls to 0.436 (mean gap 0.387). A Dhan-trained ResNet50 evaluated on white-background, field-background, and cross-dataset field tests yields macro-F1 0.854, 0.705, and 0.573, meeting a prespecified ordering that implicates acquisition/background shift. Strong augmentation raises mean cross-domain macro-F1 from 0.436 to 0.503 at seed 42 (14/18 pairs); across three train seeds, mean cross F1 rises from 0.441 to 0.502 with mean paired gain +0.070 (Wilcoxon *p* ≈ 0.0002 on 18 cell means; 15/18 positive), comparable to the baseline across-seed noise floor ±0.067. ResNet50 benefits most under full strong augmentation (0.609 mean cross F1 on six pairs). A bucket ablation on those pairs shows geometric/background transforms alone yield the largest gain (mean cross F1 0.567, Δ +0.085 vs baseline), recovering about two-thirds of the full strong-aug improvement; photometric and occlusion buckets contribute less on average. LODO improves only 3 of 9 target/model comparisons and collapses on held-out BRRI (mean macro-F1 0.203). AdaBN improves only 5/18 pairs (mean Δ −0.055, *p* ≈ 0.10) and never helps ResNet50. We conclude that strong augmentation—especially geometric randomization—is the most reliable simple mitigation among those tested, while LODO and AdaBN are largely unsuccessful on this benchmark and residual gaps underscore persistent domain dependence.
 
 ---
 
@@ -19,19 +19,26 @@ Rice leaf disease classifiers are frequently evaluated within a single collectio
 
 This paper treats cross-dataset generalization as a first-class empirical question rather than an afterthought. Our contribution is deliberately **application-plus-insight**, not a new architecture:
 
-1. **Benchmark.** A frozen, shared-class transfer matrix and generalization gap across three Bangladeshi collections and three CNN backbones.
-2. **Diagnosis.** Qualitative Grad-CAM evidence and a quantitative background-confound experiment that separates white-background, field-background, and cross-dataset field conditions.
+1. **Benchmark.** A frozen, shared-class transfer matrix and generalization gap across three Bangladeshi collections and three CNN backbones, with multi-seed replication (train seeds 42, 7, 2024; split seed fixed at 42).
+2. **Diagnosis.** Qualitative Grad-CAM evidence and a quantitative background-confound experiment that separates white-background, field-background, and cross-dataset field conditions on a representative Dhan-trained ResNet50.
 3. **Mitigation.** One-variable tests of strong train-only augmentation, leave-one-dataset-out (LODO) multi-source training, and Adaptive Batch Normalization (AdaBN) on frozen source checkpoints.
+4. **Mechanism and rigour.** An augmentation bucket ablation (ResNet50, six pairs) and paired inferential statistics (Wilcoxon signed-rank, bootstrap CIs, across-seed variance) that contextualize headline gains against seed noise.
 
-We ask: How large is the gap between in-dataset and cross-dataset macro-F1? Does background/acquisition appear to contribute? Do simple, standard interventions close the gap?
+We ask: How large is the gap between in-dataset and cross-dataset macro-F1? Does background/acquisition appear to contribute in the settings we can isolate? Do simple, standard interventions close the gap—and which ingredients of strong augmentation matter most?
 
 ---
 
 ## 2. Related work
 
-Convolutional networks are widely applied to crop disease recognition, typically reporting strong accuracy when train and test images share a dataset. Domain shift studies in plant pathology and broader computer vision show that background, illumination, and sensor differences can dominate lesion cues. Attribution methods such as Grad-CAM are often used to check whether models attend to biologically plausible regions; they provide supporting qualitative evidence rather than causal proof.
+**Plant disease recognition.** Convolutional networks achieve strong in-collection accuracy on curated plant-disease benchmarks such as PlantVillage (Mohanty et al., 2016) and large multi-crop corpora (Ferentinos, 2018). Reviews emphasize that reported performance often assumes a single acquisition regime and that real-field deployment faces illumination, occlusion, and background clutter (Barbedo, 2018; Liu & Wang, 2021). Bangladeshi rice collections—including RiceLeafBD (Rimi et al., 2025), Dhan-Shomadhan (Hossain et al., 2021), and the BRRI rice leaf disease and pest archive (Hasan et al., 2025)—differ in cameras, backgrounds, and label inventories, making them a natural testbed for cross-collection evaluation rather than within-dataset leaderboard chasing.
 
-Multi-source training and aggressive data augmentation are common practical responses to shift. Adaptive Batch Normalization (AdaBN; Li et al., 2016) is a lightweight domain-adaptation baseline that recalibrates BatchNorm running statistics on unlabeled target images without gradient updates. We evaluate augmentation, LODO, and AdaBN under a controlled protocol: frozen splits, fixed seed, and one changed experimental factor at a time. Our goal is not to introduce a new domain-adaptation method, but to document what happens when standard practices are applied honestly to a Bangladeshi multi-dataset setting.
+**Domain shift and generalization.** Domain shift in vision arises from covariate and label distribution differences between train and test environments (Quinonero-Candela et al., 2009). Domain generalization surveys catalog mitigation families—data augmentation, multi-source training, representation learning, and test-time adaptation—and stress that simple baselines are often under-reported relative to complex methods (Zhou et al., 2022). In agricultural imaging, shift from controlled to field conditions remains a recurring failure mode even when in-lab accuracy is high (Too et al., 2019).
+
+**Diagnosis and attribution.** Grad-CAM (Selvaraju et al., 2017) and related saliency tools are widely used to inspect whether models attend to lesions versus background; they provide qualitative support but not causal identification of confounds. Our background-confound design follows this literature by holding the checkpoint fixed while varying evaluation background (white vs field vs cross-dataset field).
+
+**Mitigations we test.** Train-time augmentation is a standard first response to appearance shift (Shorten & Khoshgoftaar, 2019). Multi-source training pools heterogeneous collections but does not guarantee alignment of class appearance or balance. Adaptive Batch Normalization (AdaBN; Li et al., 2016) recalibrates BatchNorm running statistics on unlabeled target data without gradient updates and is a lightweight domain-adaptation baseline often paired with deep CNNs. Agriculture-focused workshops (e.g., CVPR Agriculture-Vision; Rust et al., 2020) similarly highlight robustness and cross-condition evaluation as open problems.
+
+**Positioning.** Prior rice-disease work in Bangladesh typically reports strong within-dataset metrics. We instead freeze splits, harmonize labels, and change **one** experimental factor at a time while measuring cross-dataset macro-F1, generalization gap, and seed variability. Our goal is not a new architecture but an evidence-backed ranking of standard mitigations—and an honest account of where they fail—on three public Bangladeshi collections.
 
 ---
 
@@ -44,10 +51,10 @@ We use three Bangladeshi rice leaf disease collections (originals only):
 | Dataset | Role in study | Approx. original images used |
 |---------|---------------|------------------------------|
 | RiceLeafBD | Field-oriented leaf disease images | 1,560 |
-
-RiceLeafBD contributes **1,560** original images in the released archive we use (422+356+252+530 by class inventory); the source descriptor reports 1,555—we use the archive count after file-level verification.
 | Dhan-Shomadhan | Field and white-background subsets | 1,106 |
 | BRRI Rice Leaf Disease and Pest | Station/field originals (augmented archive excluded) | 2,753 |
+
+RiceLeafBD contributes **1,560** original images in the released archive we use (422+356+252+530 by class inventory); the source descriptor reports 1,555—we use the archive count after file-level verification.
 
 After exclusions, the harmonized corpus contains **5,419** original images (Table: `paper/tables/table_indataset.csv` sample counts; manifest: `frozen_results/manifest.csv`).
 
@@ -165,9 +172,9 @@ Mean test macro-F1 across 9 model–dataset runs is **0.719**. By dataset (model
 
 ### 5.2 Cross-dataset transfer and gaps
 
-Figures `fig02`, `fig03`; Tables `table_transfer_baseline`, `table_gap_baseline`.
+Figures `fig02`, `fig03`; Tables `table_transfer_baseline`, `table_gap_baseline`, `table_transfer_multiseed`.
 
-Across 18 transfer runs:
+Across 18 transfer runs (seed 42, frozen v1):
 
 | Quantity | Mean |
 |----------|-----:|
@@ -175,7 +182,7 @@ Across 18 transfer runs:
 | Cross-dataset macro-F1 | **0.436** |
 | Generalization gap | **0.387** |
 
-Gaps range from about 0.195 to 0.629. Transfer is consistently weaker than matched-subset source evaluation, establishing a large and systematic cross-collection drop for all three architectures.
+**Multi-seed replication** (train seeds 42, 7, 2024; split seed 42): mean cross-dataset macro-F1 over 18 cells is **0.441 ± 0.067** (mean ± mean across-seed std per cell; Table `table_transfer_multiseed`). Gaps range from about 0.195 to 0.629 at seed 42. Transfer is consistently weaker than matched-subset source evaluation for all three architectures, establishing a large and systematic cross-collection drop that persists under train-seed resampling.
 
 ### 5.3 Diagnosis: background confound and Grad-CAM
 
@@ -193,7 +200,9 @@ Brown-spot F1 falls monotonically: 0.818 (white) → 0.625 (field) → 0.495 (cr
 
 ### 5.4 Mitigation: strong augmentation
 
-Figures `fig05`–`fig07`; Tables `table_mitigation_pairwise`, `table_summary_stats`.
+Figures `fig05`–`fig07`; Tables `table_mitigation_pairwise`, `table_summary_stats`, `table_transfer_multiseed`.
+
+**Seed 42 (frozen v1).**
 
 | Statistic | Value |
 |-----------|------:|
@@ -204,19 +213,23 @@ Figures `fig05`–`fig07`; Tables `table_mitigation_pairwise`, `table_summary_st
 | Mean gap reduction | **0.055** |
 | Pairs with reduced gap | **13 / 18** |
 
-Mean improvement by target: BRRI +0.092, RiceLeafBD +0.064, Dhan-Shomadhan +0.045. Under strong augmentation, ResNet50 achieves the best mean cross-domain macro-F1 (**0.609**) and smallest mean gap (**0.244**). Largest gain: ResNet50, BRRI → RiceLeafBD, 0.300 → **0.716** (gap reduction 0.343). Largest regression: MobileNetV2, BRRI → RiceLeafBD, 0.573 → 0.273. Augmentation helps most runs but is not universal.
+**Multi-seed aggregates** (2–3 seeds per cell; 12/18 strong-aug cells still lack seed 2024): baseline mean cross F1 **0.441**, strong aug **0.502**; mean paired Δ **+0.070** with **15 / 18** cells positive (Table `table_summary_stats_multiseed`). Wilcoxon signed-rank on 18 cell-mean paired deltas: *W* = 8, *p* ≈ 0.0002. The mean gain is on the same order as the baseline across-seed noise floor (±0.067) but remains statistically significant under the paired test.
+
+Mean improvement by target (seed 42): BRRI +0.092, RiceLeafBD +0.064, Dhan-Shomadhan +0.045. Under strong augmentation, ResNet50 achieves the best mean cross-domain macro-F1 (**0.609**) and smallest mean gap (**0.244**) at seed 42. Largest gain: ResNet50, BRRI → RiceLeafBD, 0.300 → **0.716** (gap reduction 0.343). The seed-42 **regression** MobileNetV2, BRRI → RiceLeafBD (0.573 → 0.273) is **not seed-stable**: the two-seed cell mean is 0.431 ± 0.224 vs baseline 0.536 ± 0.086—high variance on a small target set rather than a reliable negative finding.
 
 ### 5.5 Mitigation: LODO
 
-Figures `fig08`, `fig09`; Tables `table_lodo`, `table_mitigation_strategy`.
+Figures `fig08`, `fig09`; Tables `table_lodo`, `table_mitigation_strategy`, `table_lodo_multiseed`.
 
-LODO beats the baseline single-source aggregate in only **3 of 9** target/model cells:
+**Seed 42.** LODO beats the baseline single-source aggregate in only **3 of 9** target/model cells:
 
 - EfficientNet-B0 → held-out Dhan: 0.317 → 0.489 (+0.171)
 - EfficientNet-B0 → held-out RiceLeafBD: 0.474 → 0.541 (+0.067)
 - MobileNetV2 → held-out RiceLeafBD: 0.549 → 0.574 (+0.025)
 
-Mean LODO macro-F1 by held-out target: RiceLeafBD **0.500**, Dhan-Shomadhan **0.402**, BRRI **0.203**. Best BRRI LODO result is only 0.267 (ResNet50). Adding a second source dataset does not reliably replace careful single-source training plus augmentation on this benchmark.
+Mean LODO macro-F1 by held-out target (seed 42): RiceLeafBD **0.500**, Dhan-Shomadhan **0.402**, BRRI **0.203**. Best BRRI LODO result is only 0.267 (ResNet50).
+
+**Multi-seed LODO** (three train seeds; `lodo_cell_mean_std.csv`): mean held-out macro-F1 by target—RiceLeafBD **0.464 ± 0.045**, Dhan-Shomadhan **0.380 ± 0.022**, BRRI **0.230 ± 0.031** (models pooled within target). BRRI remains the hardest held-out collection under multi-source training. Adding a second source dataset does not reliably replace careful single-source training plus augmentation on this benchmark.
 
 ### 5.6 Mitigation: AdaBN
 
@@ -252,18 +265,17 @@ Largest geometric gain: ResNet50 BRRI → RiceLeafBD, 0.300 → **0.874** (basel
 
 ### 5.8 Multi-seed variability and inferential statistics
 
-Figures `fig10_aug_paired_seed.png`, `fig13_seed_std_heatmap.png`; artifacts `results/stats/` (`python -m run_stats`).
+Figures `fig10_aug_paired_seed.png`, `fig13_seed_std_heatmap.png`; Tables `table_summary_stats_multiseed`, `table_transfer_multiseed`; artifacts `results/stats/` (`python -m run_stats`).
 
-On the reconstructed multi-seed transfer table (`week11_results/multiseed/transfer_all_seeds.csv`; seed-2024 strong-aug cells may still be incomplete):
+Headline inferential results (full detail in `table_summary_stats_multiseed` and `stats_tests.csv`):
 
-| Quantity | Value |
-|----------|------:|
-| Mean paired augmentation Δ (cell means over available seeds) | **+0.063** |
-| Mean across-seed std of baseline cross macro-F1 | **±0.057** |
+| Test | Result |
+|------|--------|
+| Augmentation vs baseline (18 cell-mean paired Δ) | mean **+0.070**, 15/18 positive, Wilcoxon *W* = 8, *p* ≈ 0.0002 |
+| Baseline cross macro-F1 across-seed noise | mean ± **0.067** per cell |
+| AdaBN vs baseline (18 seed-42 pairs) | mean **−0.055**, 5/18 positive, *W* = 47, *p* ≈ 0.099 |
 
-Wilcoxon signed-rank on the 18 cell-mean paired deltas: *W* = 26, *p* ≈ 0.0077 (14/18 positive). The mean augmentation improvement is **comparable to** the across-seed noise floor (ratio ≈ 1.11). We therefore (i) report multi-seed mean ± std for contested cells in the camera-ready tables, (ii) treat large single-seed anecdotes (e.g. MobileNetV2 BRRI → RiceLeafBD regression) as provisional until seed-stable, and (iii) prefer these paired tests over uncorrected per-cell *t*-tests (`stats_tests.csv`). AdaBN’s mean Δ (−0.055) is likewise tested as a paired signed-rank contrast against zero on the 18 seed-42 pairs (*W* = 47, *p* ≈ 0.099; only 5/18 positive).
-
-Bootstrap 95% CIs for per-run macro-F1 are computed from full prediction CSVs when present (`bootstrap_ci.csv`); coverage grows as Week-11/12 prediction bundles are restored locally.
+Bootstrap 95% CIs for per-run macro-F1 are computed from full prediction CSVs when present (`bootstrap_ci.csv`; 19 runs covered at time of writing). We report multi-seed mean ± std in camera-ready tables rather than uncorrected per-cell *t*-tests. Twelve strong-aug cells still lack seed 2024 locally; strong-aug aggregates therefore use 2–3 seeds per cell as available.
 
 ---
 
@@ -271,9 +283,9 @@ Bootstrap 95% CIs for per-run macro-F1 are computed from full prediction CSVs wh
 
 **The gap is real.** Strong in-dataset RiceLeafBD scores coexist with a mean cross-domain macro-F1 near 0.44. Reporting only within-collection accuracy would overstate deployability across Bangladeshi sources.
 
-**Background and acquisition matter.** The white → field → cross-dataset field ordering for a fixed Dhan-trained model supports the hypothesis that non-disease cues contribute to failure. Grad-CAM is consistent with this story but should not be oversold: border enrichment failed as a clean correctness separator.
+**Background and acquisition conditions matter in the settings we could isolate.** The white → field → cross-dataset field ordering for a fixed Dhan-trained model supports the hypothesis that non-disease cues contribute to failure. Grad-CAM is consistent with this story but should not be oversold: border enrichment failed as a clean correctness separator, and white/field labels are available only for Dhan-Shomadhan.
 
-**Strong augmentation is the more reliable simple mitigation, with a caveat on seed noise.** Improving 14/18 matched transfers and cutting the mean gap fits a picture where randomizing crop, color, blur, and occlusion reduces dependence on dataset-specific appearance. ResNet50 benefits most, suggesting capacity and feature richness interact with augmentation. Multi-seed reconstruction, however, shows that the mean paired augmentation Δ (≈ +0.062) is comparable to the mean across-seed baseline std (≈ ±0.057), so we no longer treat large single-seed swings as definitive findings until seed-stable tables replace them.
+**Strong augmentation is the more reliable simple mitigation, with seed noise acknowledged.** Improving 14/18 matched transfers at seed 42 and cutting the mean gap fits a picture where randomizing crop, color, blur, and occlusion reduces dependence on dataset-specific appearance. ResNet50 benefits most. Multi-seed replication shows mean paired gain +0.070 with Wilcoxon *p* ≈ 0.0002 (15/18 cell means positive)—statistically significant despite a baseline noise floor of ±0.067. Large single-seed swings (e.g. MobileNetV2 BRRI → RiceLeafBD at seed 42) should not be treated as definitive findings.
 
 **Bucket ablation isolates geometric/background randomization as the dominant single ingredient.** On ResNet50 × six pairs (seed 42), geometric transforms alone raise mean cross macro-F1 from 0.482 to **0.567** (Δ +0.085), recovering about two-thirds of the full strong-aug gain (+0.127 to 0.609). Photometric (+0.026) and occlusion (+0.030) buckets contribute less on average, while full strong augmentation still wins—consistent with complementary mechanisms rather than one transform doing all the work. This supports—but does not prove—the background-randomization account tied to the confound experiment, within the ablation’s single-model, single-seed scope.
 
@@ -287,13 +299,13 @@ Bootstrap 95% CIs for per-run macro-F1 are computed from full prediction CSVs wh
 
 ## 7. Limitations
 
-- **Single frozen split; multi-seed training.** Splits remain frozen at seed 42. Train-seed replication (42/7/2024) is underway; some strong-aug seed-2024 cells and full prediction bundles for bootstrap CIs are still being restored, so camera-ready mean ± std tables may lag this draft.
+- **Frozen splits; partial strong-aug seed coverage.** Stratified splits remain frozen at split seed 42. Train-seed replication (42, 7, 2024) is complete for baseline/default transfer and LODO; **12 of 18** strong-augmentation cells still lack seed 2024 locally, so strong-aug mean ± std uses 2–3 seeds per cell. Bootstrap CIs from full per-sample predictions depend on restoring all prediction bundles.
 - **Three architectures, ImageNet initialization.** Results may not transfer to transformers or heavier domain-adaptation methods (e.g., adversarial alignment).
 - **Shared-class subsets only.** Classes unique to one dataset cannot appear in pairwise transfer by construction.
 - **LODO vs single-source is strategy-level**, not class-matched.
-- **Diagnosis scope.** Background confound and Grad-CAM focus on one representative transfer (Dhan → RiceLeafBD, ResNet50, two classes).
+- **Diagnosis scope.** Background confound and Grad-CAM focus on one representative transfer (Dhan → RiceLeafBD, ResNet50, two classes). White/field background labels exist only for Dhan-Shomadhan, so the confound cannot be extended symmetrically to all pairs without new annotations.
 - **Grad-CAM overlay availability.** Sample records are frozen (`gradcam_records.csv`); the Week 6 overlay PNG was not re-bundled locally for Week 8 figures and is noted as a provenance gap.
-- **AdaBN scope.** AdaBN uses default-augmentation baseline checkpoints only (not strong-aug or LODO models) and a single seed; positive MobileNet cells should not be over-generalized.
+- **AdaBN scope.** AdaBN uses default-augmentation baseline checkpoints only (not strong-aug or LODO models) and seed 42 only; positive MobileNet cells should not be over-generalized.
 - **Ablation scope.** Bucket ablation is ResNet50 × seed 42 only; bucket rankings may not transfer to MobileNet/EfficientNet or other seeds.
 - **No field deployment study.** Results are offline evaluations on public research collections.
 
@@ -312,7 +324,7 @@ We assembled a reproducible Bangladeshi rice leaf disease cross-dataset benchmar
 | Frozen CSVs + audit (v1) | `frozen_results/` |
 | Replacement freeze (v2) | `frozen_results_v2/` + `notes/freeze_v2_changelog.md` |
 | Figures | `paper/figures/fig01`–`fig13` |
-| Tables (CSV/LaTeX) | `paper/tables/` |
+| Tables (CSV/LaTeX) | `paper/tables/` (including `table_transfer_multiseed`, `table_lodo_multiseed`, `table_summary_stats_multiseed`) |
 | Multi-seed aggregates | `week11_results/multiseed/` |
 | AdaBN results | `week12_results/adabn/`, `paper/tables/table_adabn.csv` |
 | Ablation | `results/ablation/`, `notebooks/kaggle_week13.md` |
@@ -343,3 +355,35 @@ We assembled a reproducible Bangladeshi rice leaf disease cross-dataset benchmar
 | Fig. 13 | `fig13_seed_std_heatmap.png` | §5.8 |
 
 Optional: restore Grad-CAM grid from Kaggle Week 6 bundle as Fig. 14 if available.
+
+---
+
+## References
+
+Barbedo, J. G. A. (2018). Impact of dataset size and variety on the effectiveness of deep learning and transfer learning for plant disease classification. *Computers and Electronics in Agriculture*, 153, 46–53.
+
+Ferentinos, K. P. (2018). Deep learning models for plant disease detection and diagnosis. *Computers and Electronics in Agriculture*, 145, 311–318.
+
+Hasan, A., Layes, T. A., Afridi, A. S., Rifat, S. H., Nur, F. N., & Moon, N. N. (2025). A comprehensive dataset of rice leaf images for disease detection using machine learning. *Data in Brief*, 62, 111977. https://doi.org/10.1016/j.dib.2025.111977
+
+Hossain, M. F., Abujar, S., Noori, S. R. H., & Hossain, S. A. (2021). Dhan-Shomadhan: A dataset of rice leaf disease classification for Bangladeshi local rice. Mendeley Data, V1. https://doi.org/10.17632/znsxdctwtt.1
+
+Li, Y., et al. (2016). Revisiting batch normalization for practical domain adaptation. *arXiv:1603.04779*.
+
+Liu, B., & Wang, Y. (2021). Plant disease detection and classification using deep learning: A review. *IEEE Access*, 9, 56683–56698.
+
+Mohanty, S. P., Hughes, D. P., & Salathé, M. (2016). Using deep learning for image-based plant disease detection. *Frontiers in Plant Science*, 7, 1419.
+
+Quinonero-Candela, J., et al. (2009). *Dataset Shift in Machine Learning*. MIT Press.
+
+Rimi, S. A., Chowdhury, M. J. U., Abdullah, R., Ahmed, I., Mim, M. A., & Rahman, M. S. (2025). RiceLeafBD: A real-field image dataset for rice leaf disease detection and classification in Bangladesh. Mendeley Data, V1. https://doi.org/10.17632/kx9rx8p2mz.1
+
+Rust, F., et al. (2020). Agriculture-Vision: A large aerial image database for agricultural pattern analysis. *Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition Workshops*, 57–66.
+
+Selvaraju, R. R., et al. (2017). Grad-CAM: Visual explanations from deep networks via gradient-based localization. *Proceedings of the IEEE International Conference on Computer Vision*, 618–626.
+
+Shorten, C., & Khoshgoftaar, T. M. (2019). A survey on image data augmentation for deep learning. *Journal of Big Data*, 6(1), 60.
+
+Too, E. C., et al. (2019). A comparative study of fine-tuning deep learning models for plant disease identification. *Computers and Electronics in Agriculture*, 161, 272–279.
+
+Zhou, K., et al. (2022). Domain generalization: A survey. *IEEE Transactions on Pattern Analysis and Machine Intelligence*, 45(4), 4396–4415.

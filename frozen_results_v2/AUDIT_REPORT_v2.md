@@ -2,7 +2,7 @@
 
 **Status: PASS_WITH_WARNINGS**
 
-- Git commit at freeze: `1e30488623c936b42bb5d2072203c45f67007270`
+- Git commit at freeze: `5be4159410212408a633eb1fca7e5438eae9369d`
 - v1 freeze manifest commit hint: `88f8c5d5d4ce8ef08fb84ff14b7d0fac696b5fb3`
 - Checks: 25
 - Warnings: 1
@@ -20,13 +20,13 @@
 - lodo_results.csv: v1 seed-42 values reproduced within tolerance
 - mitigation_pairwise_aug.csv: v1 seed-42 values reproduced within tolerance
 - mitigation_comparison.csv: v1 seed-42 values reproduced within tolerance
-- transfer_all_seeds.csv: copied from revision overlay (96 rows)
-- transfer_cell_mean_std.csv: copied from revision overlay (36 rows)
+- transfer_all_seeds.csv: copied from revision overlay (102 rows)
+- transfer_cell_mean_std.csv: copied from revision overlay (42 rows)
 - lodo_all_seeds.csv: copied from revision overlay (27 rows)
 - adabn_results.csv: copied from revision overlay (18 rows)
 - augmentation_ablation.csv: copied from revision overlay (18 rows)
 - stats_tests.csv: copied from revision overlay (4 rows)
-- seed_variance.csv: copied from revision overlay (36 rows)
+- seed_variance.csv: copied from revision overlay (42 rows)
 - bootstrap_ci.csv: copied from revision overlay (19 rows)
 - seed coverage OK: seed=42 aug=default = 18
 - seed coverage OK: seed=42 aug=strong = 18
