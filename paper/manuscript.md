@@ -1,7 +1,7 @@
 # Cross-Dataset Generalization of Bangladeshi Rice Leaf Disease Classifiers: Benchmark, Diagnosis, and Mitigation
 
-**Draft manuscript (Week 9 + Week 12–14 revision scaffolding)**  
-Venue-agnostic Markdown. Core numbers and figures are from the frozen Week 8 release (`frozen_results/`, `paper/figures/`, `paper/tables`). Seed = 42 throughout for the Week 5–7 core. AdaBN (§4.5, §5.6), ablation protocol (§4.6, §5.7), and multi-seed/stats (§4.7, §5.8) use revision overlays; camera-ready mean±std tables await complete seed-2024 strong-aug cells and the Week-13 ablation campaign.
+**Draft manuscript (Week 9 + Weeks 12–14 revision)**  
+Venue-agnostic Markdown. Core numbers and figures are from the frozen Week 8 release (`frozen_results/`, `paper/figures/`, `paper/tables`). Seed = 42 throughout for the Week 5–7 core. AdaBN (§5.6), augmentation bucket ablation (§5.7), and multi-seed/stats (§5.8) use revision overlays in `frozen_results_v2/`. Camera-ready mean ± std tables still await complete seed-2024 strong-aug cells (12/18 missing locally).
 
 ---
 
@@ -236,9 +236,19 @@ Largest gains: MobileNetV2 RiceLeafBD → BRRI (+0.190), MobileNetV2 Dhan → BR
 
 ### 5.7 Augmentation bucket ablation
 
-Figure `fig11_ablation_buckets.png`; Tables `table_ablation`, `table_ablation_summary`; note `notes/ablation_interpretation.md`.
+Figure `fig11_ablation_buckets.png`; Tables `table_ablation`, `table_ablation_summary`; note `notes/ablation_interpretation.md`; source `results/ablation/augmentation_ablation.csv` (archived in `frozen_results_v2/`).
 
-Protocol: ResNet50, six transfer pairs, train seed 42, each strong-augmentation bucket applied alone (§4.6). **Results pending completion of the Week-13 Kaggle campaign** (`python -m run_ablation`). After `augmentation_ablation.csv` is available, this subsection will report (i) mean cross macro-F1 and mean Δ vs the matched ResNet50 baseline per bucket, (ii) which bucket dominates, and (iii) how much of the full strong-augmentation gain each bucket recovers. Until then, mechanism claims about crop vs colour vs occlusion remain hypotheses grounded in the bundled strong pipeline (§5.4), not bucket-resolved evidence.
+Protocol: ResNet50, six transfer pairs, train seed 42, each strong-augmentation bucket applied alone (§4.6). For reference, matched ResNet50 baseline and full strong-aug means over the same six pairs are **0.482** and **0.609** (Δ **+0.127**).
+
+| Bucket | Mean cross macro-F1 | Mean Δ vs baseline | Pairs improved (Δ > 0) |
+|--------|--------------------:|-------------------:|------------------------:|
+| Geometric (crop, flip, affine) | **0.567** | **+0.085** | 3 / 6 |
+| Occlusion (blur, CoarseDropout) | 0.512 | +0.030 | **5 / 6** |
+| Photometric (brightness, hue/sat) | 0.508 | +0.026 | 3 / 6 |
+
+The **geometric/background** bucket alone recovers the largest mean gain (+0.085), about **67%** of the full strong-augmentation improvement on these six pairs (+0.127). Photometric and occlusion buckets help less on average when used in isolation, though occlusion improves more individual pairs (5/6) without raising the mean as much. Full strong augmentation still exceeds any single bucket, indicating the bundled transforms are **complementary** rather than redundant.
+
+Largest geometric gain: ResNet50 BRRI → RiceLeafBD, 0.300 → **0.874** (baseline cross F1 from Table baseline). Largest geometric regression vs baseline: Dhan → RiceLeafBD, 0.596 → 0.548. Mechanism claims should emphasize the **mean geometric advantage** and background randomization, not single-pair swings.
 
 ### 5.8 Multi-seed variability and inferential statistics
 
@@ -265,7 +275,7 @@ Bootstrap 95% CIs for per-run macro-F1 are computed from full prediction CSVs wh
 
 **Strong augmentation is the more reliable simple mitigation, with a caveat on seed noise.** Improving 14/18 matched transfers and cutting the mean gap fits a picture where randomizing crop, color, blur, and occlusion reduces dependence on dataset-specific appearance. ResNet50 benefits most, suggesting capacity and feature richness interact with augmentation. Multi-seed reconstruction, however, shows that the mean paired augmentation Δ (≈ +0.062) is comparable to the mean across-seed baseline std (≈ ±0.057), so we no longer treat large single-seed swings as definitive findings until seed-stable tables replace them.
 
-**Bucket ablation tests the mechanism story directly.** Once Week-13 results land, the dominant bucket (geometric vs photometric vs occlusion) either supports the background-randomization account or forces a narrower claim. Until then, claims about *which* transforms matter remain provisional.
+**Bucket ablation isolates geometric/background randomization as the dominant single ingredient.** On ResNet50 × six pairs (seed 42), geometric transforms alone raise mean cross macro-F1 from 0.482 to **0.567** (Δ +0.085), recovering about two-thirds of the full strong-aug gain (+0.127 to 0.609). Photometric (+0.026) and occlusion (+0.030) buckets contribute less on average, while full strong augmentation still wins—consistent with complementary mechanisms rather than one transform doing all the work. This supports—but does not prove—the background-randomization account tied to the confound experiment, within the ablation’s single-model, single-seed scope.
 
 **LODO is an honest negative result.** Multi-source training without domain alignment often underperforms, especially for BRRI. Source diversity alone is insufficient when collections differ in class appearance, balance, and capture conditions. Because LODO label spaces differ from pairwise overlaps, we interpret LODO as a strategy-level finding, not a matched-class effect.
 
@@ -291,7 +301,7 @@ Bootstrap 95% CIs for per-run macro-F1 are computed from full prediction CSVs wh
 
 ## 8. Conclusion
 
-We assembled a reproducible Bangladeshi rice leaf disease cross-dataset benchmark with frozen splits, a transfer matrix, a background-aware diagnosis, and three controlled mitigations. Cross-dataset macro-F1 is substantially lower than matched in-subset performance (mean 0.436 vs 0.824; mean gap 0.387). A background-confound experiment supports acquisition/background contribution to the failure. Strong augmentation improves most matched transfers (mean cross F1 0.436 → 0.503), while LODO usually does not and AdaBN fails on average (mean Δ −0.055; 5/18 pairs improve). The study’s primary value is an evidence-backed warning against single-dataset optimism and a clear ranking of simple mitigations on this frozen benchmark.
+We assembled a reproducible Bangladeshi rice leaf disease cross-dataset benchmark with frozen splits, a transfer matrix, a background-aware diagnosis, and three controlled mitigations. Cross-dataset macro-F1 is substantially lower than matched in-subset performance (mean 0.436 vs 0.824; mean gap 0.387). A background-confound experiment supports acquisition/background contribution to the failure. Strong augmentation improves most matched transfers (mean cross F1 0.436 → 0.503), while LODO usually does not and AdaBN fails on average (mean Δ −0.055; 5/18 pairs improve). A ResNet50 bucket ablation attributes most of the strong-aug mean gain to geometric/background randomization alone (Δ +0.085 vs baseline on six pairs). The study’s primary value is an evidence-backed warning against single-dataset optimism and a clear ranking of simple mitigations on this frozen benchmark.
 
 ---
 
