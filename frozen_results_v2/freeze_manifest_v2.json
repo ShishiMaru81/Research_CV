@@ -15,6 +15,7 @@
     "transfer_cell_mean_std.csv: copied from revision overlay (36 rows)",
     "lodo_all_seeds.csv: copied from revision overlay (27 rows)",
     "adabn_results.csv: copied from revision overlay (18 rows)",
+    "augmentation_ablation.csv: copied from revision overlay (18 rows)",
     "stats_tests.csv: copied from revision overlay (4 rows)",
     "seed_variance.csv: copied from revision overlay (36 rows)",
     "bootstrap_ci.csv: copied from revision overlay (19 rows)",
@@ -22,7 +23,8 @@
     "seed coverage OK: seed=42 aug=strong = 18",
     "seed coverage OK: seed=7 aug=default = 18",
     "seed coverage OK: seed=7 aug=strong = 18",
-    "seed coverage OK: seed=2024 aug=default = 18"
+    "seed coverage OK: seed=2024 aug=default = 18",
+    "ablation rows: 18 (>=18)"
   ],
   "files": [
     {
@@ -147,6 +149,14 @@
     },
     {
       "matches_v1_sha256": null,
+      "path": "augmentation_ablation.csv",
+      "rows": 18,
+      "sha256": "85517f14cc5697834bf3650358b59cc67764d9e7446ba4c47ac02a3934761e07",
+      "source": "results/ablation/augmentation_ablation.csv",
+      "tier": "revision"
+    },
+    {
+      "matches_v1_sha256": null,
       "path": "stats_tests.csv",
       "rows": 4,
       "sha256": "942f1f6cb21c62446d80a331f69cd90620df0c2c40134e78690197d4acb67551",
@@ -165,19 +175,18 @@
       "matches_v1_sha256": null,
       "path": "bootstrap_ci.csv",
       "rows": 19,
-      "sha256": "f2f9d61e0cbba32b29db85edf5100e218cdd502a7899f69dc464235ec962f648",
+      "sha256": "98886d22fb545a7a6faedb003e3d55291dfb37b003899d985fc60f6c7b967a45",
       "source": "results/stats/bootstrap_ci.csv",
       "tier": "revision"
     }
   ],
-  "git_commit": "48e37609237124d8c085bd05522a073ca2f85fc4",
+  "git_commit": "1e30488623c936b42bb5d2072203c45f67007270",
   "schema_version": 2,
   "split_seed": 42,
   "status": "PASS_WITH_WARNINGS",
   "v1_commit_hint": "88f8c5d5d4ce8ef08fb84ff14b7d0fac696b5fb3",
   "v1_dir": "frozen_results",
   "warnings": [
-    "optional missing: D:/Research_Own/Research_CV/results/ablation/augmentation_ablation.csv",
     "seed coverage incomplete: seed=2024 aug=strong has 6, expected 18"
   ]
 }
