@@ -121,7 +121,8 @@ git log --pretty=format:"%H %ad %s" --date=short
 - **Phase 1 — multi-seed replication.** Added seeds 7 and 2024 alongside the original 42 (90 additional training runs). Proof of actual execution (not just planning): [run_registry (1).csv](../run_registry%20(1).csv) — 77 logged runs with real Kaggle wall-clock timestamps, e.g. run `mobilenetv2_100__train-riceleafbd__run-to-dhan_shomadhan__classes-brown_spot+tungro__seed7__eval-dhan_shomadhan__aug-default` started `2026-07-21T08:20:10.523326+00:00`, completed `2026-07-21T08:23:06.741052+00:00`. 76 rows `complete`, 1 `running` at time of last freeze.
 - **Phase 2 — AdaBN + diagnosis.** Adaptive batch-norm re-estimation on the target-domain **training** split only (never test — verified in [notes/week10-14_post_review_workflow.md](week10-14_post_review_workflow.md), avoiding label leakage). Result: [frozen_results_v2/adabn_results.csv](../frozen_results_v2/adabn_results.csv), 18 rows. Mean Δ macro-F1 (AdaBN − baseline) = **−0.055**; only 5/18 pairs improved. By model: MobileNetV2 +0.013 (3/6 improve), EfficientNet-B0 −0.060 (2/6), **ResNet50 −0.119, 0/6 improve — AdaBN never helped the best-performing backbone.** This is a negative result, reported as one.
 - **Phase 3 — augmentation bucket ablation (Week 13).** ResNet50 × 6 pairs × 3 buckets × seed 42 = 18 runs. Results: [results/ablation/augmentation_ablation.csv](../results/ablation/augmentation_ablation.csv) (18 rows; archived in `frozen_results_v2/`). Mean cross macro-F1 by bucket vs matched ResNet50 baseline (0.482): geometric **0.567** (Δ +0.085, 3/6 pairs improve), occlusion 0.512 (+0.030, 5/6), photometric 0.508 (+0.026, 3/6). Full strong aug on same pairs: 0.609 (Δ +0.127). Tables: [paper/tables/table_ablation_summary.csv](../paper/tables/table_ablation_summary.csv); figure: [paper/figures/fig11_ablation_buckets.png](../paper/figures/fig11_ablation_buckets.png); interpretation: [notes/ablation_interpretation.md](ablation_interpretation.md). Manuscript §5.7 updated.
-- **Phase 4 — statistics layer.** [frozen_results_v2/stats_tests.csv](../frozen_results_v2/stats_tests.csv): Wilcoxon signed-rank test on the 18 matched augmentation-vs-baseline cells gives **W=26, p=0.0077** (14/18 positive) — the augmentation gain from Week 7 is statistically significant, not likely noise. The AdaBN comparison is **not** significant (W=47, p=0.099, 5/18 positive) — consistent with the negative finding above. Cross-seed noise floor quantified: mean augmentation gain (+0.063) is on the same order as cross-seed standard deviation (±0.057) — reported honestly in the manuscript as "improvement comparable to the noise floor," not oversold.
+- **Phase 4 — statistics layer.** [frozen_results_v2/stats_tests.csv](../frozen_results_v2/stats_tests.csv): Wilcoxon signed-rank on 18 cell-mean paired augmentation deltas gives **W=8, p≈0.0002** (15/18 positive; mean Δ +0.070). Baseline across-seed noise floor: mean ± **0.067** per cell. AdaBN comparison is **not** significant (W=47, p=0.099, 5/18 positive). Camera-ready tables: [paper/tables/table_transfer_multiseed.csv](../paper/tables/table_transfer_multiseed.csv), [table_lodo_multiseed.csv](../paper/tables/table_lodo_multiseed.csv), [table_summary_stats_multiseed.csv](../paper/tables/table_summary_stats_multiseed.csv).
+- **Phase 5 — manuscript revision (camera-ready draft).** [paper/manuscript.md](../paper/manuscript.md): expanded Related work (15 references with verified dataset DOIs), multi-seed mean ± std in Results (§5.2–5.8), corrected bibliography (Rimi et al. 2025 RiceLeafBD; Hossain et al. 2021 Dhan-Shomadhan; Hasan et al. 2025 BRRI), trimmed Results/Discussion redundancy, updated Limitations. Writing audit: [notes/manuscript_audit.md](manuscript_audit.md) (`python scripts/audit_writing.py`).
 - **v2 freeze audit**: [frozen_results_v2/AUDIT_REPORT_v2.md](../frozen_results_v2/AUDIT_REPORT_v2.md) — **status PASS_WITH_WARNINGS**, 25 checks, 1 warning. All 11 v1-core files reproduced within tolerance. Ablation overlay present (18 rows). Remaining warning: seed 2024 / strong-augmentation has only 6 of 18 rows in the reconstructed multi-seed table.
 
 ## 3. Headline results (for a one-slide summary), each traceable to §2
@@ -132,7 +133,7 @@ git log --pretty=format:"%H %ad %s" --date=short
 | Cross-dataset mean macro-F1 (no mitigation) | 0.436 | `frozen_results/crossdataset_matrix.csv` |
 | Mean generalization gap | 0.387 | `frozen_results/generalization_gap.csv` |
 | Background confound present (Dhan/ResNet50) | white 0.854 > field 0.705 > cross 0.573 | `frozen_results/background_confound.csv` |
-| Strong augmentation improves cross-F1 | 0.436→0.503, 14/18 pairs, p=0.0077 (Wilcoxon) | `mitigation_pairwise_aug.csv`, `stats_tests.csv` |
+| Strong augmentation improves cross-F1 | 0.436→0.503 (seed 42); multi-seed 0.441→0.502, p≈0.0002 | `mitigation_pairwise_aug.csv`, `stats_tests.csv`, `table_summary_stats_multiseed.csv` |
 | LODO training | improves only 3/9 cells | `mitigation_comparison.csv` |
 | AdaBN | mean Δ −0.055, not significant (p=0.099), never helps ResNet50 | `adabn_results.csv`, `stats_tests.csv` |
 | Aug bucket ablation (ResNet50) | geometric best: 0.567 (+0.085 vs baseline); strong aug 0.609 | `augmentation_ablation.csv`, `table_ablation_summary.csv` |
@@ -146,6 +147,10 @@ git log --pretty=format:"%H %ad %s" --date=short   # confirm §1
 python -m freeze_results        # re-derive frozen_results/, re-run 23 audit checks
 python -m freeze_results_v2     # re-derive frozen_results_v2/, re-run v2 checks
 python -m scripts.build_ablation_tables   # from results/ablation/augmentation_ablation.csv
+python scripts/rebuild_multiseed_summary.py
+python scripts/build_multiseed_tables.py --sync-week11
+python scripts/audit_writing.py
+python -m run_stats
 python -m make_figures          # regenerate paper/figures + paper/tables from frozen inputs only
 python -m make_figures --revision   # fig10–13 including ablation bar chart
 sha256sum artifacts/manifest.csv   # compare to 3a1a981ae73cded5b7dc46f6a3e479594c6d7a71af78e6779f3b3339a8c81466
@@ -154,12 +159,12 @@ sha256sum artifacts/manifest.csv   # compare to 3a1a981ae73cded5b7dc46f6a3e47959
 
 ## 5. What is explicitly NOT yet done (so nothing here is overclaimed)
 
-1. Seed-2024 strong-augmentation cells — 12/18 metric rows still missing locally in the reconstructed multi-seed table (runs completed on Kaggle; metrics not fully downloaded).
+1. **Seed-2024 strong-augmentation cells** — 12/18 metric rows still missing locally (runs completed on Kaggle; metrics not fully downloaded). Strong-aug mean ± std uses 2–3 seeds per cell.
 2. Extended background-confound / full-set Grad-CAM enrichment (Phase 2b).
-3. Camera-ready submission pass (Phase 5): abstract refresh, related-work expansion, final mean±std tables once seed-2024 gap is closed.
+3. **Submission** — arXiv preprint and venue submission not yet filed.
 4. Week-7 model checkpoints and one Week-5 training-history JSON are not present in the locally downloaded bundle (noted in audit reports; does not affect frozen metrics).
 5. Grad-CAM overlay images from Week 6 are not available locally; only the 12 tabulated records survive.
-6. All experiments use one dataset split (seed 42 for the split itself); only the *training* seed varies across the multi-seed work.
+6. All experiments use one dataset split (split seed 42); only *training* stochasticity varies across the multi-seed work.
 
 ## 6. Raw data provenance (on-disk verification, `d:\Research_Own\Dataset`)
 

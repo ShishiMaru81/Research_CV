@@ -11,13 +11,13 @@
     "lodo_results.csv: v1 seed-42 values reproduced within tolerance",
     "mitigation_pairwise_aug.csv: v1 seed-42 values reproduced within tolerance",
     "mitigation_comparison.csv: v1 seed-42 values reproduced within tolerance",
-    "transfer_all_seeds.csv: copied from revision overlay (96 rows)",
-    "transfer_cell_mean_std.csv: copied from revision overlay (36 rows)",
+    "transfer_all_seeds.csv: copied from revision overlay (102 rows)",
+    "transfer_cell_mean_std.csv: copied from revision overlay (42 rows)",
     "lodo_all_seeds.csv: copied from revision overlay (27 rows)",
     "adabn_results.csv: copied from revision overlay (18 rows)",
     "augmentation_ablation.csv: copied from revision overlay (18 rows)",
     "stats_tests.csv: copied from revision overlay (4 rows)",
-    "seed_variance.csv: copied from revision overlay (36 rows)",
+    "seed_variance.csv: copied from revision overlay (42 rows)",
     "bootstrap_ci.csv: copied from revision overlay (19 rows)",
     "seed coverage OK: seed=42 aug=default = 18",
     "seed coverage OK: seed=42 aug=strong = 18",
@@ -118,16 +118,16 @@
     {
       "matches_v1_sha256": null,
       "path": "transfer_all_seeds.csv",
-      "rows": 96,
-      "sha256": "b87e412faa5ade00ec03819663f269d36397439b97f52d335c9ebcd88bcb03ce",
+      "rows": 102,
+      "sha256": "f3b376d4438b3f68b254129fbde5573f794be29cd77bb0663d706c8f9ec68b70",
       "source": "week11_results/multiseed/transfer_all_seeds.csv",
       "tier": "revision"
     },
     {
       "matches_v1_sha256": null,
       "path": "transfer_cell_mean_std.csv",
-      "rows": 36,
-      "sha256": "b0ed80cfc8f70c4fc62075346de384d0dd3b71f6ee3f4b44a8ef2e46884413eb",
+      "rows": 42,
+      "sha256": "5d896166fbc7fc07aad6c4a04edfe5082dfb57129f27d5048a3bb1b9eb49c511",
       "source": "week11_results/multiseed/transfer_cell_mean_std.csv",
       "tier": "revision"
     },
@@ -159,15 +159,15 @@
       "matches_v1_sha256": null,
       "path": "stats_tests.csv",
       "rows": 4,
-      "sha256": "942f1f6cb21c62446d80a331f69cd90620df0c2c40134e78690197d4acb67551",
+      "sha256": "d04ddb957507552af2a337779c3ce7cc61f1d6c5782ba96fac1446954c6ffaad",
       "source": "results/stats/stats_tests.csv",
       "tier": "revision"
     },
     {
       "matches_v1_sha256": null,
       "path": "seed_variance.csv",
-      "rows": 36,
-      "sha256": "ed228d9addbafa1836cf69b9edd3e74de2b3e43291bdec143f2aa501bbfd2360",
+      "rows": 42,
+      "sha256": "5e548c688e35cbc713f5c58a42ce219aa3d3b8049e3aa4a7f3a352ac571b84da",
       "source": "results/stats/seed_variance.csv",
       "tier": "revision"
     },
@@ -180,7 +180,7 @@
       "tier": "revision"
     }
   ],
-  "git_commit": "1e30488623c936b42bb5d2072203c45f67007270",
+  "git_commit": "5be4159410212408a633eb1fca7e5438eae9369d",
   "schema_version": 2,
   "split_seed": 42,
   "status": "PASS_WITH_WARNINGS",
