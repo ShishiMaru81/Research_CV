@@ -1,0 +1,4 @@
+bucket,n,mean_cross_f1,mean_delta_vs_baseline,n_improved,bucket_label
+geo,6,0.5669446543498176,0.08509222475485971,3,Geometric
+photo,6,0.5075988407632301,0.025746411168272327,3,Photometric
+occlusion,6,0.5120396200430847,0.03018719044812687,5,Occlusion

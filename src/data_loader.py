@@ -12,7 +12,7 @@ import torch
 from albumentations.pytorch import ToTensorV2
 from torch.utils.data import DataLoader, Dataset
 
-from src.utils import load_config
+from src.utils import load_config, make_torch_generator, seed_worker
 
 
 IMAGENET_MEAN = (0.485, 0.456, 0.406)
@@ -48,6 +48,24 @@ def default_eval_transform(image_size: int) -> A.Compose:
             ToTensorV2(),
         ]
     )
+
+
+AUGMENTATION_PROFILES = (
+    "default",
+    "strong",
+    "bucket-geo",
+    "bucket-photo",
+    "bucket-occlusion",
+)
+
+BUCKET_PROFILES = ("bucket-geo", "bucket-photo", "bucket-occlusion")
+
+
+def _normalize_to_tensor() -> list[A.BasicTransform]:
+    return [
+        A.Normalize(mean=IMAGENET_MEAN, std=IMAGENET_STD),
+        ToTensorV2(),
+    ]
 
 
 def strong_train_transform(image_size: int) -> A.Compose:
@@ -90,21 +108,85 @@ def strong_train_transform(image_size: int) -> A.Compose:
                 fill="random_uniform",
                 p=0.4,
             ),
-            A.Normalize(mean=IMAGENET_MEAN, std=IMAGENET_STD),
-            ToTensorV2(),
+            *_normalize_to_tensor(),
+        ]
+    )
+
+
+def bucket_geo_train_transform(image_size: int) -> A.Compose:
+    """Geometric/background bucket alone (crop, flip, affine)."""
+    return A.Compose(
+        [
+            A.RandomResizedCrop(
+                size=(image_size, image_size),
+                scale=(0.6, 1.0),
+                ratio=(0.75, 1.3333333333333333),
+                p=1.0,
+            ),
+            A.HorizontalFlip(p=0.5),
+            A.Affine(
+                translate_percent={"x": (-0.06, 0.06), "y": (-0.06, 0.06)},
+                scale=(0.9, 1.1),
+                rotate=(-20, 20),
+                p=0.7,
+            ),
+            *_normalize_to_tensor(),
+        ]
+    )
+
+
+def bucket_photo_train_transform(image_size: int) -> A.Compose:
+    """Photometric bucket alone (brightness/contrast + hue/sat/val)."""
+    return A.Compose(
+        [
+            A.Resize(image_size, image_size),
+            A.RandomBrightnessContrast(
+                brightness_limit=0.2, contrast_limit=0.2, p=0.5
+            ),
+            A.HueSaturationValue(
+                hue_shift_limit=15,
+                sat_shift_limit=25,
+                val_shift_limit=15,
+                p=0.5,
+            ),
+            *_normalize_to_tensor(),
+        ]
+    )
+
+
+def bucket_occlusion_train_transform(image_size: int) -> A.Compose:
+    """Occlusion/blur bucket alone (GaussianBlur + CoarseDropout)."""
+    return A.Compose(
+        [
+            A.Resize(image_size, image_size),
+            A.GaussianBlur(blur_limit=(3, 5), p=0.2),
+            A.CoarseDropout(
+                num_holes_range=(1, 4),
+                hole_height_range=(0.08, 0.18),
+                hole_width_range=(0.08, 0.18),
+                fill="random_uniform",
+                p=0.4,
+            ),
+            *_normalize_to_tensor(),
         ]
     )
 
 
 def build_train_transform(image_size: int, augmentation: str = "default") -> A.Compose:
     """Return the train-time transform for a named augmentation profile."""
-    if augmentation == "strong":
-        return strong_train_transform(image_size)
-    if augmentation == "default":
-        return default_train_transform(image_size)
-    raise ValueError(
-        f"Unknown augmentation profile '{augmentation}'. Use 'default' or 'strong'."
-    )
+    builders = {
+        "default": default_train_transform,
+        "strong": strong_train_transform,
+        "bucket-geo": bucket_geo_train_transform,
+        "bucket-photo": bucket_photo_train_transform,
+        "bucket-occlusion": bucket_occlusion_train_transform,
+    }
+    if augmentation not in builders:
+        raise ValueError(
+            f"Unknown augmentation profile '{augmentation}'. "
+            f"Use one of: {', '.join(AUGMENTATION_PROFILES)}."
+        )
+    return builders[augmentation](image_size)
 
 
 class ManifestImageDataset(Dataset[tuple[torch.Tensor, int, str]]):
@@ -306,6 +388,7 @@ def make_loaders(
     path_remap: tuple[str, str] | None = None,
     image_root: str | None = None,
     image_roots: dict[str, str] | None = None,
+    train_seed: int | None = None,
 ) -> tuple[DataLoader, DataLoader, DataLoader, dict[str, Any]]:
     config = load_config()
     resolved_manifest = (
@@ -374,9 +457,32 @@ def make_loaders(
         eval_rows, class_to_index, eval_transform, verify_images=verify_images
     )
 
-    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=0)
-    val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, num_workers=0)
-    eval_loader = DataLoader(eval_dataset_obj, batch_size=batch_size, shuffle=False, num_workers=0)
+    # Shuffle generator is tied to train_seed (training stochasticity), never to
+    # split assignment — splits come from the frozen manifest column.
+    train_loader_kwargs: dict[str, Any] = {
+        "batch_size": batch_size,
+        "shuffle": True,
+        "num_workers": 0,
+        "worker_init_fn": seed_worker,
+    }
+    if train_seed is not None:
+        train_loader_kwargs["generator"] = make_torch_generator(train_seed)
+
+    train_loader = DataLoader(train_dataset, **train_loader_kwargs)
+    val_loader = DataLoader(
+        val_dataset,
+        batch_size=batch_size,
+        shuffle=False,
+        num_workers=0,
+        worker_init_fn=seed_worker,
+    )
+    eval_loader = DataLoader(
+        eval_dataset_obj,
+        batch_size=batch_size,
+        shuffle=False,
+        num_workers=0,
+        worker_init_fn=seed_worker,
+    )
 
     class_weights = _compute_class_weights(train_rows, class_to_index) if return_class_weights else None
     meta = LoaderMeta(

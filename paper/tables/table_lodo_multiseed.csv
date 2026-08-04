@@ -1,0 +1,10 @@
+held_out,model,n_seeds,f1_mean,f1_std
+BRRI,EfficientNet-B0,3,0.162380,0.031373
+BRRI,MobileNetV2,3,0.235479,0.032005
+BRRI,ResNet50,3,0.291011,0.029658
+Dhan-Shomadhan,EfficientNet-B0,3,0.458175,0.030635
+Dhan-Shomadhan,MobileNetV2,3,0.313180,0.014400
+Dhan-Shomadhan,ResNet50,3,0.370014,0.021840
+RiceLeafBD,EfficientNet-B0,3,0.492063,0.042601
+RiceLeafBD,MobileNetV2,3,0.500681,0.079454
+RiceLeafBD,ResNet50,3,0.397772,0.013463

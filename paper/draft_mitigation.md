@@ -60,6 +60,12 @@ the held-out collection differs in acquisition conditions, class appearance, or
 class balance. The particularly weak BRRI LODO results reinforce its role as
 the most challenging target domain in this study.
 
+AdaBN (BatchNorm statistic recalibration on unlabeled target-train images)
+likewise failed on average: mean Δ macro-F1 −0.055 with only 5 of 18 pairs
+improving, and no ResNet50 gains. This is an honest weak/negative domain-
+adaptation baseline on the same 18 matched transfers. Among the three simple
+interventions tested, strong augmentation remains the most reliable.
+
 The LODO and single-source aggregates use different label spaces and are
 therefore strategy-level rather than class-matched comparisons. In addition,
 all mitigation estimates use one seed and one frozen split. The results should

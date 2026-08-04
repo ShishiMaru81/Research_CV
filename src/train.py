@@ -136,7 +136,7 @@ def train(
     train_datasets: list[str],
     classes: list[str] | None,
     config: dict[str, Any],
-    seed: int,
+    seed: int | None = None,
     eval_dataset: str | None = None,
     use_amp: bool = True,
     verify_images: bool = False,
@@ -145,8 +145,31 @@ def train(
     image_roots: dict[str, str] | None = None,
     run_tag: str | None = None,
     augmentation: str = "default",
+    train_seed: int | None = None,
+    split_seed: int | None = None,
 ) -> tuple[Path, dict[str, Any]]:
-    set_seed(seed)
+    """Fine-tune a model.
+
+    ``train_seed`` controls init / shuffle / augmentation (artifact stem
+    ``__seed{N}``). ``split_seed`` documents the frozen manifest split and must
+    stay at 42 for the published study. Deprecated ``seed`` aliases ``train_seed``.
+    """
+    resolved_train_seed = int(
+        train_seed if train_seed is not None else (seed if seed is not None else config.get("seed", 42))
+    )
+    resolved_split_seed = int(
+        split_seed
+        if split_seed is not None
+        else config.get("split_seed", 42)
+    )
+    if resolved_split_seed != 42:
+        print(
+            f"WARNING: split_seed={resolved_split_seed} (expected 42 for the "
+            "frozen Week 3–9 split). Training will not rebuild splits; verify "
+            "you intentionally deviate."
+        )
+
+    set_seed(resolved_train_seed)
     device = get_device()
 
     results_root = Path(config["results_root"])
@@ -185,6 +208,7 @@ def train(
         image_root=image_root,
         image_roots=image_roots,
         aug_pipeline=aug_pipeline,
+        train_seed=resolved_train_seed,
     )
 
     model = build_model(model_name, num_classes=len(classes), pretrained=True).to(device)
@@ -207,7 +231,7 @@ def train(
     ckpt_dir = results_root / "checkpoints"
     ckpt_dir.mkdir(parents=True, exist_ok=True)
     artifact_stem = training_stem(
-        model_name, train_datasets, seed, normalized_run_tag
+        model_name, train_datasets, resolved_train_seed, normalized_run_tag
     )
     checkpoint_path = ckpt_dir / f"{artifact_stem}.pth"
     log_path = results_root / f"{artifact_stem}.json"
@@ -259,7 +283,9 @@ def train(
                     "eval_dataset": eval_ds,
                     "classes": classes,
                     "class_to_index": meta["class_to_index"],
-                    "seed": seed,
+                    "seed": resolved_train_seed,  # back-compat alias
+                    "train_seed": resolved_train_seed,
+                    "split_seed": resolved_split_seed,
                     "run_tag": normalized_run_tag,
                     "augmentation": augmentation,
                     "best_val_macro_f1": best_macro_f1,
@@ -279,7 +305,9 @@ def train(
         "eval_dataset": eval_ds,
         "classes": classes,
         "class_to_index": meta["class_to_index"],
-        "seed": seed,
+        "seed": resolved_train_seed,
+        "train_seed": resolved_train_seed,
+        "split_seed": resolved_split_seed,
         "run_tag": normalized_run_tag,
         "augmentation": augmentation,
         "best_val_macro_f1": best_macro_f1,
@@ -313,7 +341,24 @@ def parse_args() -> argparse.Namespace:
         default=None,
         help="Optional class subset. Default: all classes.",
     )
-    parser.add_argument("--seed", type=int, default=None)
+    parser.add_argument(
+        "--train_seed",
+        type=int,
+        default=None,
+        help="Training stochasticity seed (init, shuffle, aug). Default: config seed.",
+    )
+    parser.add_argument(
+        "--split_seed",
+        type=int,
+        default=None,
+        help="Frozen split seed (must stay 42 for published splits). Default: config split_seed.",
+    )
+    parser.add_argument(
+        "--seed",
+        type=int,
+        default=None,
+        help="Deprecated alias for --train_seed.",
+    )
     parser.add_argument("--no_amp", action="store_true", help="Disable mixed precision.")
     parser.add_argument(
         "--verify_images",
@@ -349,8 +394,17 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--augmentation",
         default="default",
-        choices=["default", "strong"],
-        help="Train-time augmentation profile (default or strong).",
+        choices=[
+            "default",
+            "strong",
+            "bucket-geo",
+            "bucket-photo",
+            "bucket-occlusion",
+        ],
+        help=(
+            "Train-time augmentation profile: default, strong, "
+            "or Phase-3 buckets (bucket-geo|bucket-photo|bucket-occlusion)."
+        ),
     )
     return parser.parse_args()
 
@@ -372,7 +426,14 @@ if __name__ == "__main__":
     cfg = load_config(args.config)
     model_name = args.model or str(cfg.get("model_name", "mobilenetv2_100"))
     train_datasets = args.train_datasets or ["riceleafbd"]
-    seed = int(args.seed if args.seed is not None else cfg.get("seed", 42))
+    train_seed = int(
+        args.train_seed
+        if args.train_seed is not None
+        else (args.seed if args.seed is not None else cfg.get("seed", 42))
+    )
+    split_seed = int(
+        args.split_seed if args.split_seed is not None else cfg.get("split_seed", 42)
+    )
     path_remap = tuple(args.path_remap) if args.path_remap else None
 
     train(
@@ -380,7 +441,8 @@ if __name__ == "__main__":
         train_datasets=train_datasets,
         classes=args.classes,
         config=cfg,
-        seed=seed,
+        train_seed=train_seed,
+        split_seed=split_seed,
         eval_dataset=args.eval_dataset,
         use_amp=not args.no_amp,
         verify_images=args.verify_images,
