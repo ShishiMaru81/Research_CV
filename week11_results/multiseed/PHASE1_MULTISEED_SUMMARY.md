@@ -33,12 +33,12 @@ If non-zero, prefer re-downloading `results/multiseed/*.csv` from Kaggle.
 
 | Quantity | Value |
 |---|---|
-| Mean across-seed std (baseline cross macro-F1) | 0.0667 |
+| Mean across-seed std (baseline cross macro-F1) | 0.0570 |
 | Mean across-seed std (strong-aug cross macro-F1) | 0.0622 |
-| Mean paired aug delta (strong − baseline) | 0.0670 |
+| Mean paired aug delta (strong − baseline) | 0.0615 |
 | Paired seed-cells used for delta | 42 |
 
-Interpretation cue from the workflow: compare mean aug gain (0.067) to baseline seed noise (0.067).
+Interpretation cue from the workflow: compare mean aug gain (0.062) to baseline seed noise (0.057).
 
 ## LODO (models pooled)
 

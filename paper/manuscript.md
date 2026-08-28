@@ -1,7 +1,7 @@
 # Cross-Dataset Generalization of Bangladeshi Rice Leaf Disease Classifiers: Benchmark, Diagnosis, and Mitigation
 
 **Camera-ready draft (Phase 5 revision)**  
-Venue-agnostic Markdown. Week 5–7 core numbers are from the frozen Week 8 release (`frozen_results/`). AdaBN (§5.6), augmentation bucket ablation (§5.7), multi-seed aggregates (§5.8), and inferential statistics use revision overlays in `frozen_results_v2/` and `week11_results/multiseed/`. Strong-augmentation seed-2024 cells are complete for baseline/default runs; **12 of 18** strong-aug cells still lack seed 2024 locally (mean ± std for strong aug therefore uses 2–3 seeds per cell as available).
+Venue-agnostic Markdown. Week 5–7 core CSVs are immutable under `frozen_results/` (SHA-256 in `freeze_manifest.json`). AdaBN, ablation, multi-seed aggregates, and stats use `frozen_results_v2/`. Primary transfer/augmentation headlines use the **three-train-seed** pair (0.445 → 0.502, Δ +0.063); seed-42-only matrices are retained for reference and are not mixed into that headline. **12 of 18** strong-aug cells still lack seed 2024 locally.
 
 ---
 
@@ -9,7 +9,7 @@ Venue-agnostic Markdown. Week 5–7 core numbers are from the frozen Week 8 rele
 
 Deep learning models for rice leaf disease recognition often report strong in-dataset accuracy, yet their reliability across independently collected Bangladeshi datasets remains poorly characterized. We study cross-dataset generalization over three original-image collections—RiceLeafBD, Dhan-Shomadhan, and the BRRI Rice Leaf Disease and Pest dataset—after label harmonization, exclusion of pre-augmented images, and freezing of stratified 70/15/15 splits (5,419 images; seed 42). Using MobileNetV2, EfficientNet-B0, and ResNet50, we (i) measure a transfer benchmark and generalization gap on six ordered shared-class pairs, (ii) diagnose failure via Grad-CAM inspection and a background-confound evaluation, and (iii) test three standard mitigations: strong train-only augmentation, leave-one-dataset-out (LODO) training, and Adaptive Batch Normalization (AdaBN).
 
-In-dataset mean macro-F1 is 0.719, while matched cross-dataset mean macro-F1 falls to 0.436 (mean gap 0.387). A Dhan-trained ResNet50 evaluated on white-background, field-background, and cross-dataset field tests yields macro-F1 0.854, 0.705, and 0.573, meeting a prespecified ordering that implicates acquisition/background shift. Strong augmentation raises mean cross-domain macro-F1 from 0.436 to 0.503 at seed 42 (14/18 pairs); across three train seeds, mean cross F1 rises from 0.441 to 0.502 with mean paired gain +0.070 (Wilcoxon *p* ≈ 0.0002 on 18 cell means; 15/18 positive), comparable to the baseline across-seed noise floor ±0.067. ResNet50 benefits most under full strong augmentation (0.609 mean cross F1 on six pairs). A bucket ablation on those pairs shows geometric/background transforms alone yield the largest gain (mean cross F1 0.567, Δ +0.085 vs baseline), recovering about two-thirds of the full strong-aug improvement; photometric and occlusion buckets contribute less on average. LODO improves only 3 of 9 target/model comparisons and collapses on held-out BRRI (mean macro-F1 0.203). AdaBN improves only 5/18 pairs (mean Δ −0.055, *p* ≈ 0.10) and never helps ResNet50. We conclude that strong augmentation—especially geometric randomization—is the most reliable simple mitigation among those tested, while LODO and AdaBN are largely unsuccessful on this benchmark and residual gaps underscore persistent domain dependence.
+In-dataset mean macro-F1 is 0.719. Across three train seeds (split seed fixed at 42), mean cross-dataset macro-F1 is 0.445 under default augmentation and 0.502 under strong augmentation (mean paired Δ +0.063; Wilcoxon *p* ≈ 0.0077 on 18 cell means; 14/18 positive), comparable to the baseline across-seed noise floor ±0.057. A Dhan-trained ResNet50 evaluated on white-background, field-background, and cross-dataset field tests yields macro-F1 0.854, 0.705, and 0.573, meeting a prespecified ordering that implicates acquisition/background shift. ResNet50 benefits most under full strong augmentation (0.609 mean cross F1 on six pairs at seed 42). A bucket ablation on those pairs shows geometric/background transforms alone yield the largest gain (mean cross F1 0.567, Δ +0.085 vs baseline), recovering about two-thirds of the full strong-aug improvement; photometric and occlusion buckets contribute less on average. LODO improves only 3 of 9 target/model comparisons and collapses on held-out BRRI (mean macro-F1 0.203). AdaBN improves only 5/18 pairs (mean Δ −0.055, *p* ≈ 0.10) and never helps ResNet50. We conclude that strong augmentation—especially geometric randomization—is the most reliable simple mitigation among those tested, while LODO and AdaBN are largely unsuccessful on this benchmark and residual gaps underscore persistent domain dependence.
 
 ---
 
@@ -97,13 +97,15 @@ Default training augmentation is mild geometric/photometric jitter. Evaluation t
 
 ### 4.2 Metrics
 
-Primary metric: **macro-F1**. We also report accuracy and per-class F1. On RiceLeafBD, macro-F1 often exceeds accuracy (e.g., ResNet50: 0.913 vs 0.898) because class-weighted cross-entropy lifts recall on minority classes more than it lifts overall accuracy. The **generalization gap** for a transfer run is:
+Primary metric: **macro-F1** on the evaluation split. For cross-dataset transfer we report **target-test macro-F1** (cross-dataset macro-F1) as the headline transfer score because it measures absolute performance on the deployment collection. The **generalization gap** is reported secondarily and always alongside the matched source-test macro-F1:
 
 \[
 \text{gap} = \text{macro-F1}_{\text{source test}} - \text{macro-F1}_{\text{target test}}
 \]
 
-on the same shared-class subset.
+on the same shared-class subset. Gap can partly reflect source-task difficulty (in-dataset F1 ranges 0.638–0.99 across sources) rather than transfer failure alone; cross-F1 is therefore preferred for comparing transfer arms and mitigations.
+
+We also report accuracy and per-class F1. On RiceLeafBD, macro-F1 often exceeds accuracy (e.g., ResNet50: 0.913 vs 0.898) because class-weighted cross-entropy lifts recall on minority classes more than it lifts overall accuracy.
 
 ### 4.3 Benchmark (Week 5)
 
@@ -154,11 +156,11 @@ Scope (budgeted): **ResNet50 × 6 transfer pairs × seed 42** (18 runs). ResNet5
 
 **Inferential tests.** For the paired augmentation claim we use a Wilcoxon signed-rank test on matched baseline vs strong cross-dataset macro-F1 (no normality assumption; *n* = 18 cells, optionally aggregated as seed means). AdaBN uses the same paired test on Δ macro-F1. Across-seed variability is reported as mean ± std per cell. Per-run uncertainty uses bootstrap resampling of test samples (1,000 resamples) from full per-sample prediction CSVs. We avoid uncorrected per-cell *t*-tests.
 
-**Replacement freeze.** Seed-42 Week 5–7 numbers remain those audited in `frozen_results/`. Multi-seed, AdaBN, ablation, and statistics overlays are released under `frozen_results_v2/` with `notes/freeze_v2_changelog.md` (`python -m freeze_results_v2`). Figures: `python -m make_figures` (core) and `python -m make_figures --revision` (Phase-4 plots).
+**Replacement freeze.** Seed-42 Week 5–7 CSVs remain the immutable files under `frozen_results/` (SHA-256 digests in `freeze_manifest.json`). Multi-seed, AdaBN, ablation, and statistics overlays are released under `frozen_results_v2/` with `notes/freeze_v2_changelog.md` (`python -m freeze_results_v2`). The v2 assembler **copies** those v1 core files and checks file-copy / hash integrity; it does not independently re-derive metrics from training logs. Numerical checks that can fail (gap arithmetic, seed-42 identity in the multi-seed table, Wilcoxon recomputation) are run separately via `python scripts/numerical_freeze_audit.py`. Figures: `python -m make_figures` (core) and `python -m make_figures --revision` (Phase-4 plots).
 
 ### 4.8 Result freeze (Week 8)
 
-All publication numbers for the Week 5–7 core release are audited against per-run metrics JSON files, gap arithmetic, and re-derived mitigation tables (`python -m freeze_results`). Figures and LaTeX/CSV tables are regenerated deterministically (`python -m make_figures`). AdaBN numbers (§5.6) are archived under `week12_results/adabn/` and `paper/tables/table_adabn.csv`.
+Week 5–7 publication CSVs were frozen under `frozen_results/` after checks against per-run metrics JSON files, gap arithmetic, and re-derived mitigation tables (`python -m freeze_results`; 23 checks in `audit_report.md`). Recorded digests, not the obsolete git SHA stamped at freeze time, are the integrity ground truth after a later history rewrite that removed Cursor co-author trailers (`notes/missing_commit_investigation.md`). Figures and LaTeX/CSV tables are regenerated deterministically (`python -m make_figures`). AdaBN numbers (§5.6) are archived under `week12_results/adabn/` and `paper/tables/table_adabn.csv`.
 
 ---
 
@@ -174,15 +176,9 @@ Mean test macro-F1 across 9 model–dataset runs is **0.719**. By dataset (model
 
 Figures `fig02`, `fig03`; Tables `table_transfer_baseline`, `table_gap_baseline`, `table_transfer_multiseed`.
 
-Across 18 transfer runs (seed 42, frozen v1):
+**Primary reporting uses the three-train-seed aggregate** (train seeds 42, 7, 2024; split seed 42; Table `table_transfer_multiseed`). Mean cross-dataset macro-F1 over 18 cells is **0.445 ± 0.057** (mean ± mean across-seed std per cell). Transfer is consistently weaker than matched-subset source evaluation for all three architectures.
 
-| Quantity | Mean |
-|----------|-----:|
-| Source (in-subset) macro-F1 | 0.824 |
-| Cross-dataset macro-F1 | **0.436** |
-| Generalization gap | **0.387** |
-
-**Multi-seed replication** (train seeds 42, 7, 2024; split seed 42): mean cross-dataset macro-F1 over 18 cells is **0.441 ± 0.067** (mean ± mean across-seed std per cell; Table `table_transfer_multiseed`). Gaps range from about 0.195 to 0.629 at seed 42. Transfer is consistently weaker than matched-subset source evaluation for all three architectures, establishing a large and systematic cross-collection drop that persists under train-seed resampling.
+For reference only, the frozen seed-42 matrix alone (not mixed into the multi-seed headline) has mean source-subset macro-F1 0.824, mean cross macro-F1 0.436, and mean gap 0.387.
 
 ### 5.3 Diagnosis: background confound and Grad-CAM
 
@@ -200,22 +196,11 @@ Brown-spot F1 falls monotonically: 0.818 (white) → 0.625 (field) → 0.495 (cr
 
 ### 5.4 Mitigation: strong augmentation
 
-Figures `fig05`–`fig07`; Tables `table_mitigation_pairwise`, `table_summary_stats`, `table_transfer_multiseed`.
+Figures `fig05`–`fig07`; Tables `table_mitigation_pairwise`, `table_summary_stats`, `table_transfer_multiseed`, `table_summary_stats_multiseed`.
 
-**Seed 42 (frozen v1).**
+**Multi-seed aggregates (primary).** Baseline mean cross macro-F1 **0.445**, strong augmentation **0.502**; mean paired Δ **+0.063** with **14 / 18** cell means positive (Table `table_summary_stats_multiseed`). Wilcoxon signed-rank on the 18 cell-mean paired deltas: *W* = 26, *p* ≈ 0.0077. The mean gain is on the same order as the baseline across-seed noise floor (±0.057) but remains statistically significant under the paired test. Twelve of 18 strong-aug cells still lack seed 2024 locally, so strong-aug cell means use 2–3 seeds as available.
 
-| Statistic | Value |
-|-----------|------:|
-| Mean cross macro-F1 (baseline → aug) | 0.436 → **0.503** |
-| Mean improvement | **+0.067** |
-| Pairs improved (cross F1) | **14 / 18** |
-| Mean gap (baseline → aug) | 0.387 → **0.333** |
-| Mean gap reduction | **0.055** |
-| Pairs with reduced gap | **13 / 18** |
-
-**Multi-seed aggregates** (2–3 seeds per cell; 12/18 strong-aug cells still lack seed 2024): baseline mean cross F1 **0.441**, strong aug **0.502**; mean paired Δ **+0.070** with **15 / 18** cells positive (Table `table_summary_stats_multiseed`). Wilcoxon signed-rank on 18 cell-mean paired deltas: *W* = 8, *p* ≈ 0.0002. The mean gain is on the same order as the baseline across-seed noise floor (±0.067) but remains statistically significant under the paired test.
-
-Mean improvement by target (seed 42): BRRI +0.092, RiceLeafBD +0.064, Dhan-Shomadhan +0.045. Under strong augmentation, ResNet50 achieves the best mean cross-domain macro-F1 (**0.609**) and smallest mean gap (**0.244**) at seed 42. Largest gain: ResNet50, BRRI → RiceLeafBD, 0.300 → **0.716** (gap reduction 0.343). The seed-42 **regression** MobileNetV2, BRRI → RiceLeafBD (0.573 → 0.273) is **not seed-stable**: the two-seed cell mean is 0.431 ± 0.224 vs baseline 0.536 ± 0.086—high variance on a small target set rather than a reliable negative finding.
+Under strong augmentation at seed 42, ResNet50 achieves the best mean cross-domain macro-F1 (**0.609**) and smallest mean gap (**0.244**). Largest single-seed gain: ResNet50, BRRI → RiceLeafBD, 0.300 → **0.716**. The seed-42 MobileNetV2 BRRI → RiceLeafBD swing (0.573 → 0.273) is **not seed-stable** (two-seed strong cell 0.431 ± 0.224 vs baseline 0.536 ± 0.086) and is not treated as a finding.
 
 ### 5.5 Mitigation: LODO
 
@@ -271,11 +256,11 @@ Headline inferential results (full detail in `table_summary_stats_multiseed` and
 
 | Test | Result |
 |------|--------|
-| Augmentation vs baseline (18 cell-mean paired Δ) | mean **+0.070**, 15/18 positive, Wilcoxon *W* = 8, *p* ≈ 0.0002 |
-| Baseline cross macro-F1 across-seed noise | mean ± **0.067** per cell |
+| Augmentation vs baseline (18 cell-mean paired Δ) | mean **+0.063**, 14/18 positive, Wilcoxon *W* = 26, *p* ≈ 0.0077 |
+| Baseline cross macro-F1 across-seed noise | mean ± **0.057** per cell |
 | AdaBN vs baseline (18 seed-42 pairs) | mean **−0.055**, 5/18 positive, *W* = 47, *p* ≈ 0.099 |
 
-Bootstrap 95% CIs for per-run macro-F1 are computed from full prediction CSVs when present (`bootstrap_ci.csv`; 19 runs covered at time of writing). We report multi-seed mean ± std in camera-ready tables rather than uncorrected per-cell *t*-tests. Twelve strong-aug cells still lack seed 2024 locally; strong-aug aggregates therefore use 2–3 seeds per cell as available.
+Bootstrap 95% CIs for per-run macro-F1 are computed from full prediction CSVs when present (`bootstrap_ci.csv`; 19 runs covered at time of writing). We report the three-seed pair **0.445 → 0.502** (Δ +0.063) as the primary augmentation claim and do not mix seed-42-only means into that headline. Twelve strong-aug cells still lack seed 2024 locally.
 
 ---
 
@@ -285,7 +270,7 @@ Bootstrap 95% CIs for per-run macro-F1 are computed from full prediction CSVs wh
 
 **Background and acquisition conditions matter in the settings we could isolate.** The white → field → cross-dataset field ordering for a fixed Dhan-trained model supports the hypothesis that non-disease cues contribute to failure. Grad-CAM is consistent with this story but should not be oversold: border enrichment failed as a clean correctness separator, and white/field labels are available only for Dhan-Shomadhan.
 
-**Strong augmentation is the more reliable simple mitigation, with seed noise acknowledged.** Improving 14/18 matched transfers at seed 42 and cutting the mean gap fits a picture where randomizing crop, color, blur, and occlusion reduces dependence on dataset-specific appearance. ResNet50 benefits most. Multi-seed replication shows mean paired gain +0.070 with Wilcoxon *p* ≈ 0.0002 (15/18 cell means positive)—statistically significant despite a baseline noise floor of ±0.067. Large single-seed swings (e.g. MobileNetV2 BRRI → RiceLeafBD at seed 42) should not be treated as definitive findings.
+**Strong augmentation is the more reliable simple mitigation, with seed noise acknowledged.** Across three train seeds, mean cross macro-F1 rises from 0.445 to 0.502 (paired Δ +0.063; Wilcoxon *p* ≈ 0.0077; 14/18 cell means positive)—statistically significant despite a baseline noise floor of ±0.057. ResNet50 benefits most under the full strong pipeline. Large single-seed swings (e.g. MobileNetV2 BRRI → RiceLeafBD at seed 42) should not be treated as definitive findings.
 
 **Bucket ablation isolates geometric/background randomization as the dominant single ingredient.** On ResNet50 × six pairs (seed 42), geometric transforms alone raise mean cross macro-F1 from 0.482 to **0.567** (Δ +0.085), recovering about two-thirds of the full strong-aug gain (+0.127 to 0.609). Photometric (+0.026) and occlusion (+0.030) buckets contribute less on average, while full strong augmentation still wins—consistent with complementary mechanisms rather than one transform doing all the work. This supports—but does not prove—the background-randomization account tied to the confound experiment, within the ablation’s single-model, single-seed scope.
 
@@ -313,7 +298,7 @@ Bootstrap 95% CIs for per-run macro-F1 are computed from full prediction CSVs wh
 
 ## 8. Conclusion
 
-We assembled a reproducible Bangladeshi rice leaf disease cross-dataset benchmark with frozen splits, a transfer matrix, a background-aware diagnosis, and three controlled mitigations. Cross-dataset macro-F1 is substantially lower than matched in-subset performance (mean 0.436 vs 0.824; mean gap 0.387). A background-confound experiment supports acquisition/background contribution to the failure. Strong augmentation improves most matched transfers (mean cross F1 0.436 → 0.503), while LODO usually does not and AdaBN fails on average (mean Δ −0.055; 5/18 pairs improve). A ResNet50 bucket ablation attributes most of the strong-aug mean gain to geometric/background randomization alone (Δ +0.085 vs baseline on six pairs). The study’s primary value is an evidence-backed warning against single-dataset optimism and a clear ranking of simple mitigations on this frozen benchmark.
+We assembled a reproducible Bangladeshi rice leaf disease cross-dataset benchmark with frozen splits, a transfer matrix, a background-aware diagnosis, and three controlled mitigations. Across three train seeds, mean cross-dataset macro-F1 is 0.445 under default augmentation versus 0.502 under strong augmentation (paired Δ +0.063; Wilcoxon *p* ≈ 0.008; 14/18 cell means positive)—statistically detectable but modest relative to the baseline across-seed noise floor (±0.057). A background-confound experiment supports acquisition/background contribution to the failure. LODO usually does not help and AdaBN fails on average (mean Δ −0.055; 5/18 pairs improve). A ResNet50 bucket ablation attributes most of the strong-aug mean gain to geometric/background randomization alone (Δ +0.085 vs baseline on six pairs). The study’s primary value is an evidence-backed warning against single-dataset optimism and a clear ranking of simple mitigations on this frozen benchmark.
 
 ---
 
@@ -329,7 +314,9 @@ We assembled a reproducible Bangladeshi rice leaf disease cross-dataset benchmar
 | AdaBN results | `week12_results/adabn/`, `paper/tables/table_adabn.csv` |
 | Ablation | `results/ablation/`, `notebooks/kaggle_week13.md` |
 | Statistics | `results/stats/`, `notebooks/kaggle_week14.md` |
-| Freeze commands | `python -m freeze_results`, `python -m freeze_results_v2` |
+| Freeze commands | `python -m freeze_results`, `python -m freeze_results_v2`, `python scripts/numerical_freeze_audit.py` |
+| Commit-hash note | `notes/missing_commit_investigation.md` |
+| Checkpoint status | `notes/kaggle_checkpoint_verification.md` |
 | Figure commands | `python -m make_figures`, `python -m make_figures --revision` |
 | Runners | `python -m run_adabn`, `python -m run_ablation`, `python -m run_stats` |
 | Code + Kaggle notes | `src/`, `run_*.py`, `notebooks/kaggle_week*.md` |

@@ -1,5 +1,5 @@
 claim,test,n,n_positive,mean_delta,statistic,pvalue,note
-augmentation_gt_baseline_mean_over_seeds_18_cells,wilcoxon_signed_rank,18,15,0.07012585048498719,8.0,0.00019073486328125,
-augmentation_gt_baseline_all_seed_pair_rows,wilcoxon_signed_rank,42,32,0.06703960538545972,151.0,8.334654648933792e-05,
-augmentation_gt_baseline_seed42_18_pairs,wilcoxon_signed_rank,18,14,0.07977805555555555,24.0,0.0055999755859375,
+augmentation_gt_baseline_mean_over_seeds_18_cells,wilcoxon_signed_rank,18,14,0.06348550278874437,26.0,0.0076904296875,
+augmentation_gt_baseline_all_seed_pair_rows,wilcoxon_signed_rank,42,32,0.06153970882793067,164.0,0.00018283626559423283,
+augmentation_gt_baseline_seed42_18_pairs,wilcoxon_signed_rank,18,14,0.06694496358798771,30.0,0.0138702392578125,
 adabn_gt_baseline_18_pairs_seed42,wilcoxon_signed_rank,18,5,-0.0553328713373248,47.0,0.0987396240234375,

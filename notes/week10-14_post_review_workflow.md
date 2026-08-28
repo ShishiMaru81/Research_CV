@@ -187,7 +187,7 @@ If budget allows, add a second seed (+4 hrs). Restrict to ResNet50 because it sh
 Avoid: running a t-test per cell and reporting 18 p-values without correction. If you go per-cell, apply Benjamini–Hochberg and say so.
 
 ### 4.2 Freeze v2
-New directory `frozen_results_v2/`, fresh `freeze_results.py` run, fresh audit report. The v2 audit should additionally check: seed coverage complete, predictions file present for every run, v1 seed-42 values reproduced within tolerance. Record both v1 and v2 commit hashes. Write `notes/freeze_v2_changelog.md` explaining exactly what changed and why — that document is your defence if anyone questions result provenance.
+New directory `frozen_results_v2/`, fresh freeze run, fresh audit report. The v2 audit should check: seed coverage, prediction-file presence when available, and **file-copy / SHA-256 integrity** of v1 core files after copy (not independent numerical re-derivation). Record both v1 and v2 commit hashes (noting any history rewrite). Write `notes/freeze_v2_changelog.md`. For checks that can fail on wrong numbers, run `python scripts/numerical_freeze_audit.py`.
 
 ### 4.3 Figure updates
 - Fig. 1, 2, 3, 6, 7, 8: add error bars / annotate cells with ± std
