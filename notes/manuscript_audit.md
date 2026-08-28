@@ -14,11 +14,11 @@ Generated from repository CSVs. Tolerance ±0.002 on rounded display values.
 | Strong-aug cross macro-F1 (seed 42) | 0.503 | 0.5033 | `mitigation_pairwise_aug` | PASS |
 | Mean aug improvement (seed 42) | 0.067 | 0.0669 | `mitigation_pairwise_aug` | PASS |
 | Aug pairs improved (seed 42) | 14.000 | 14.0000 | `mitigation_pairwise_aug` | PASS |
-| Baseline cross mean (3-seed cells) | 0.441 | 0.4408 | `transfer_cell_mean_std default` | PASS |
-| Baseline cross std avg | 0.067 | 0.0667 | `transfer_cell_mean_std default` | PASS |
+| Baseline cross mean (3-seed cells) | 0.445 | 0.4450 | `transfer_cell_mean_std default` | PASS |
+| Baseline cross std avg | 0.057 | 0.0570 | `transfer_cell_mean_std default` | PASS |
 | Strong cross mean (partial seeds) | 0.502 | 0.5021 | `transfer_cell_mean_std strong` | PASS |
-| Wilcoxon aug p (18 cells) | 0.000 | 0.0002 | `stats_tests.csv` | PASS |
-| Mean paired aug delta | 0.070 | 0.0701 | `stats_tests.csv` | PASS |
+| Wilcoxon aug p (18 cells) | 0.008 | 0.0077 | `stats_tests.csv` | PASS |
+| Mean paired aug delta | 0.063 | 0.0635 | `stats_tests.csv` | PASS |
 | AdaBN mean delta | -0.055 | -0.0553 | `adabn_results.csv` | PASS |
 | AdaBN pairs improved | 5.000 | 5.0000 | `adabn_results.csv` | PASS |
 | AdaBN Wilcoxon p | 0.099 | 0.0987 | `stats_tests.csv` | PASS |

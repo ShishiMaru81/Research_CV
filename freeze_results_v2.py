@@ -100,6 +100,7 @@ def _git_commit_for_path(path: Path) -> str:
 def _assert_close_frames(
     left: pd.DataFrame, right: pd.DataFrame, name: str, atol: float = 1e-9
 ) -> str:
+    """Confirm the v2 core file is a faithful *copy* of v1 (not an independent recompute)."""
     if list(left.columns) != list(right.columns):
         raise AssertionError(f"{name}: column mismatch v1 vs v2 copy")
     if len(left) != len(right):
@@ -110,7 +111,10 @@ def _assert_close_frames(
             b = pd.to_numeric(right[col], errors="coerce")
             if not np.allclose(a.fillna(0), b.fillna(0), atol=atol, equal_nan=True):
                 raise AssertionError(f"{name}.{col}: numeric mismatch vs v1")
-    return f"{name}: v1 seed-42 values reproduced within tolerance"
+    return (
+        f"{name}: file-copy integrity vs v1 (columns/rows/numeric values match; "
+        "this is copy verification, not independent numerical reproduction)"
+    )
 
 
 def assemble_v2(output_dir: Path = DEFAULT_OUT) -> dict[str, Any]:
@@ -136,15 +140,24 @@ def assemble_v2(output_dir: Path = DEFAULT_OUT) -> dict[str, Any]:
             raise FileNotFoundError(f"v1 missing required file: {src}")
         dst = output_dir / name
         shutil.copy2(src, dst)
+        src_hash = sha256(src)
+        dst_hash = sha256(dst)
         checks.append(_assert_close_frames(pd.read_csv(src), pd.read_csv(dst), name))
+        if src_hash == dst_hash:
+            checks.append(f"{name}: SHA-256 identical to v1 ({src_hash[:12]}…)")
+        else:
+            warnings.append(
+                f"{name}: SHA-256 differs from v1 after copy "
+                f"({src_hash[:12]}… vs {dst_hash[:12]}…)"
+            )
         file_records.append(
             {
                 "path": name,
                 "tier": "v1_core",
                 "source": f"frozen_results/{name}",
                 "rows": len(pd.read_csv(dst)),
-                "sha256": sha256(dst),
-                "matches_v1_sha256": sha256(src) == sha256(dst),
+                "sha256": dst_hash,
+                "matches_v1_sha256": src_hash == dst_hash,
             }
         )
 
@@ -246,6 +259,10 @@ def assemble_v2(output_dir: Path = DEFAULT_OUT) -> dict[str, Any]:
             "",
             "- `frozen_results/` remains immutable.",
             "- This directory is the replacement freeze for revision claims.",
+            "- v1-core checks verify **file-copy / hash integrity** after "
+            "`shutil.copy2`, not independent re-derivation from metrics JSON.",
+            "- For numerical checks that can fail, run "
+            "`python scripts/numerical_freeze_audit.py`.",
             "- See `notes/freeze_v2_changelog.md` for what changed and why.",
             "",
         ]

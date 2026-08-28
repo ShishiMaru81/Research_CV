@@ -77,11 +77,11 @@ def build_lodo_multiseed(cell_path: Path) -> pd.DataFrame:
 def build_summary_multiseed(
     cell_path: Path,
     stats_path: Path,
-    frozen_pairwise: Path,
+    frozen_pairwise: Path | None = None,
 ) -> pd.DataFrame:
     cell = pd.read_csv(cell_path)
     stats = pd.read_csv(stats_path)
-    pairwise = pd.read_csv(frozen_pairwise)
+    _ = frozen_pairwise  # retained for API compatibility; seed-42 means omitted from Option A table
 
     base = cell[cell["augmentation"] == "default"]
     strong = cell[cell["augmentation"] == "strong"]
@@ -91,13 +91,7 @@ def build_summary_multiseed(
     mean_delta = float(aug_row["mean_delta"].iloc[0]) if len(aug_row) else float("nan")
     n_pos = int(aug_row["n_positive"].iloc[0]) if len(aug_row) else 0
 
-    merged = base.merge(
-        strong,
-        on=["train_dataset", "test_dataset", "model"],
-        suffixes=("_base", "_aug"),
-    )
-    merged["delta_mean"] = merged["cross_mean_aug"] - merged["cross_mean_base"]
-    cells_positive = int((merged["delta_mean"] > 0).sum())
+    cells_positive = int(n_pos)
 
     rows = [
         ("baseline_cross_mean_3seed", base["cross_mean"].mean()),
@@ -107,9 +101,6 @@ def build_summary_multiseed(
         ("mean_paired_aug_delta_cell_means", mean_delta),
         ("cells_positive_aug_delta", float(cells_positive)),
         ("wilcoxon_p_18_cells", wilcoxon_p),
-        ("seed42_baseline_cross_mean", pairwise["baseline_cross_macro_f1"].mean()),
-        ("seed42_aug_cross_mean", pairwise["aug_cross_macro_f1"].mean()),
-        ("seed42_mean_cross_improvement", pairwise["cross_f1_improvement"].mean()),
         ("strong_cells_missing_seed2024", float(18 - strong["n_seeds"].eq(3).sum())),
     ]
     return pd.DataFrame(rows, columns=["statistic", "value"])

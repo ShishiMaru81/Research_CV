@@ -439,12 +439,13 @@ def main() -> None:
         keep="last",
     )
 
-    # Attach frozen seed 42
+    # Attach frozen seed 42 first. keep="first" so audited Week-8 values
+    # survive transcript/log scrapings of the same seed-42 cells.
     frozen = pd.concat([load_frozen_transfer(), load_frozen_aug()], ignore_index=True)
     transfer = pd.concat([frozen, transfer], ignore_index=True)
     transfer = transfer.drop_duplicates(
         subset=["model", "train_dataset", "test_dataset", "seed", "augmentation"],
-        keep="last",
+        keep="first",
     )
     transfer["seed"] = transfer["seed"].astype(int)
 
@@ -463,7 +464,7 @@ def main() -> None:
         ld = ld.dropna(subset=["seed"])
         ld = ld.drop_duplicates(subset=["model", "held_out_dataset", "seed"], keep="last")
     ld = pd.concat([load_frozen_lodo(), ld], ignore_index=True)
-    ld = ld.drop_duplicates(subset=["model", "held_out_dataset", "seed"], keep="last")
+    ld = ld.drop_duplicates(subset=["model", "held_out_dataset", "seed"], keep="first")
     ld["seed"] = ld["seed"].astype(int)
     print("\nFINAL lodo coverage:")
     print(ld.groupby("seed").size())
