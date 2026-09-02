@@ -1,6 +1,8 @@
 data/
 checkpoints/
 results/
+frozen_results_v2/*.npz
+dist/
 __pycache__/
 *.pth
 *.pyc
