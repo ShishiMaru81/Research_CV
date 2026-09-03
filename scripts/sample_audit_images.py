@@ -152,7 +152,7 @@ def main() -> None:
         index = i + 1
         image_path = str(row["image_path"])
         rel = _relative_under_raw(image_path)
-        raw_path = ROOT / Path(image_path)
+        raw_path = ROOT / Path(str(image_path).replace("\\", "/"))
         sam_path = SAM_ROOT / rel
         hsv_path = HSV_ROOT / rel
         for p in (raw_path, sam_path, hsv_path):
