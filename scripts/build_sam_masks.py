@@ -3,13 +3,19 @@
 Reads frozen_results/manifest.csv (immutable). Writes masked RGB images under
 data/masked/sam_leaf/ and quality metrics to frozen_results_v2/sam_mask_quality.csv.
 
+Mask selection: a single positive point prompt at the image centre, taking the
+SAM output with the highest predicted IoU, then the largest connected component.
+The original brief's rule (automatic masks, keep highest mean ExG) was replaced
+because it selects the greenest fragment, which for disease images is always a
+healthy background blade rather than the discoloured subject leaf. See
+notes/week12_masking_plan.md, "SAM selection criterion".
+
 Never writes numeric findings into this file — all metrics are computed at runtime.
 """
 
 from __future__ import annotations
 
 import argparse
-import sys
 from pathlib import Path
 
 import numpy as np
@@ -59,18 +65,6 @@ def _load_manifest() -> pd.DataFrame:
     return nondup
 
 
-def _exg_score(img_rgb: np.ndarray, mask: np.ndarray) -> float:
-    if mask.dtype != bool:
-        mask = mask.astype(bool)
-    if not mask.any():
-        return float("-inf")
-    r = img_rgb[:, :, 0].astype(np.float64)
-    g = img_rgb[:, :, 1].astype(np.float64)
-    b = img_rgb[:, :, 2].astype(np.float64)
-    exg = 2.0 * g - r - b
-    return float(np.mean(exg[mask]))
-
-
 def _component_stats(mask: np.ndarray) -> tuple[int, float]:
     labeled, n_comp = ndimage.label(mask.astype(np.uint8))
     if n_comp == 0:
@@ -81,9 +75,18 @@ def _component_stats(mask: np.ndarray) -> tuple[int, float]:
     return int(n_comp), float(largest / mask.size)
 
 
+def _largest_component(mask: np.ndarray) -> np.ndarray:
+    labeled, n_comp = ndimage.label(mask.astype(np.uint8))
+    if n_comp == 0:
+        raise RuntimeError("SAM mask has zero foreground pixels.")
+    sizes = np.bincount(labeled.ravel())
+    sizes[0] = 0
+    return labeled == int(np.argmax(sizes))
+
+
 def _load_mobile_sam(device: torch.device):
     try:
-        from mobile_sam import SamAutomaticMaskGenerator, sam_model_registry
+        from mobile_sam import SamPredictor, sam_model_registry
     except ImportError as exc:
         raise ImportError(
             "MobileSAM is not installed. Install with:\n"
@@ -103,26 +106,25 @@ def _load_mobile_sam(device: torch.device):
     sam = sam_model_registry["vit_t"](checkpoint=str(CHECKPOINT))
     sam.to(device)
     sam.eval()
-    mask_generator = SamAutomaticMaskGenerator(sam)
-    return mask_generator
+    return SamPredictor(sam)
 
 
-def _select_best_mask(
-    img_rgb: np.ndarray, amg_masks: list[dict]
-) -> np.ndarray:
-    if len(amg_masks) == 0:
-        raise RuntimeError("MobileSAM returned zero masks for this image.")
-    best_score = float("-inf")
-    best_mask: np.ndarray | None = None
-    for item in amg_masks:
-        seg = item["segmentation"]
-        score = _exg_score(img_rgb, seg)
-        if score > best_score:
-            best_score = score
-            best_mask = seg.astype(bool)
-    if best_mask is None:
-        raise RuntimeError("Failed to select a mask (empty AMG list after scoring).")
-    return best_mask
+def _center_prompt_mask(predictor, img_rgb: np.ndarray) -> tuple[np.ndarray, float]:
+    """Segment the object under the image centre; return (mask, sam_iou_score)."""
+    h, w = img_rgb.shape[:2]
+    predictor.set_image(img_rgb)
+    masks, scores, _ = predictor.predict(
+        point_coords=np.array([[w // 2, h // 2]], dtype=np.float32),
+        point_labels=np.array([1], dtype=np.int32),
+        multimask_output=True,
+    )
+    if masks.shape[0] == 0:
+        raise RuntimeError("MobileSAM returned zero masks for centre prompt.")
+    best = int(np.argmax(scores))
+    mask = masks[best].astype(bool)
+    if not mask.any():
+        raise RuntimeError("MobileSAM centre-prompt mask is empty.")
+    return _largest_component(mask), float(scores[best])
 
 
 def main() -> None:
@@ -147,8 +149,8 @@ def main() -> None:
         df = df.iloc[: args.limit].reset_index(drop=True)
         print(f"SMOKE TEST: limiting to first {len(df)} rows")
 
-    mask_generator = _load_mobile_sam(device)
-    print("Loaded MobileSAM (vit_t + SamAutomaticMaskGenerator)")
+    predictor = _load_mobile_sam(device)
+    print("Loaded MobileSAM (vit_t + SamPredictor, centre-point prompt)")
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     OUT_CSV.parent.mkdir(parents=True, exist_ok=True)
@@ -169,8 +171,7 @@ def main() -> None:
 
         img = Image.open(src).convert("RGB")
         img_rgb = np.asarray(img)
-        amg_masks = mask_generator.generate(img_rgb)
-        leaf_mask = _select_best_mask(img_rgb, amg_masks)
+        leaf_mask, sam_score = _center_prompt_mask(predictor, img_rgb)
 
         masked = img_rgb.copy()
         masked[~leaf_mask] = 0
@@ -184,6 +185,7 @@ def main() -> None:
                 "foreground_fraction": float(leaf_mask.sum() / leaf_mask.size),
                 "n_components": n_comp,
                 "largest_component_fraction": largest_frac,
+                "sam_score": sam_score,
             }
         )
 

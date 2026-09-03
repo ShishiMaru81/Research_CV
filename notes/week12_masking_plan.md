@@ -37,9 +37,32 @@ pip install scikit-image scipy tqdm pillow pandas numpy torch
 
 Download `mobile_sam.pt` into `Research_CV/weights/mobile_sam.pt`.
 
-Note: the script uses the official registry key `vit_t` with
-`SamAutomaticMaskGenerator` (automatic masks). The brief's
+Note: the script uses the official registry key `vit_t`. The brief's
 `predictor.generate()` API does not match MobileSAM's published API.
+
+### SAM selection criterion (deviation from brief, 2026-09-03)
+
+The brief specified: automatic mask generation, keep the mask with the
+highest mean ExG (2G − R − B). On the first Kaggle smoke image
+(`riceleafbd/Bacterial Leaf Blight/287707627_...jpg`) this kept a thin
+healthy green blade in the top-left corner (foreground fraction 0.05) and
+discarded the brown blighted leaf in the centre. Second image: 0.001.
+
+Cause: mean ExG is maximised by the greenest fragment. A diseased leaf is
+discoloured, so the greenest region is always background canopy. Changing
+mean → sum would only pick the largest green background blade. Greenness
+cannot identify the subject leaf in disease imagery.
+
+Replacement rule (no result-tuning, decided before any full run):
+`SamPredictor` with a single positive point at the image centre,
+`multimask_output=True`, keep the mask with the highest SAM predicted IoU,
+then the largest connected component. Rationale: the subject leaf is
+centred by the photographer in all three datasets. Side effect: one decoder
+pass per image instead of the AMG point grid (~10× faster).
+
+`sam_mask_quality.csv` gains a `sam_score` column (SAM's own IoU estimate).
+The HSV variant still uses ExG/Otsu as specified; it is the crude control
+arm and is expected to fail the audit on in-canopy RiceLeafBD.
 
 ## Hand audit
 
