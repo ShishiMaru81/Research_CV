@@ -70,3 +70,14 @@ Fill `notes/mask_audit/audit_sheet.csv`:
 
 Only after `parse_audit_verdicts.py` prints cleared variants. Do **not** start
 Kaggle masked retraining until the gate passes.
+
+```bash
+# Local dry-run (needs full masks + audit decision)
+python run_transfer_masked.py --condition sam_leaf --dry-run
+
+# Full 18-run train (GPU strongly recommended)
+python run_transfer_masked.py --condition sam_leaf
+```
+
+Kaggle cells: `notebooks/kaggle_week13_masked.md`  
+(Do not confuse with `kaggle_week13.md`, which is the older aug-bucket ablation.)
