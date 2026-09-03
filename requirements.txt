@@ -2,6 +2,8 @@ torch
 torchvision
 timm
 scikit-learn
+scikit-image
+scipy
 albumentations
 opencv-python-headless
 grad-cam
@@ -13,3 +15,6 @@ pillow
 imagehash
 pyyaml
 tqdm
+# Optional Week 12 SAM masks:
+# pip install git+https://github.com/ChaoningZhang/MobileSAM.git
+# Download weights/mobile_sam.pt separately
