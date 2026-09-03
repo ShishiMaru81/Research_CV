@@ -158,7 +158,7 @@ def main() -> None:
 
     for _, row in tqdm(df.iterrows(), total=len(df), desc="SAM masks"):
         image_path = str(row["image_path"])
-        src = ROOT / Path(image_path)
+        src = ROOT / Path(str(image_path).replace("\\", "/"))
         if not src.is_file():
             failures.append(image_path)
             continue
