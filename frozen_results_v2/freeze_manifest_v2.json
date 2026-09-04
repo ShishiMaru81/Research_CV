@@ -34,7 +34,7 @@
     "crossdataset_matrix_masked_sam_leaf.csv: 18/18 exact masked-transfer keys",
     "All specified arithmetic checks passed without filtering rows"
   ],
-  "frozen_at": "2026-09-04T04:19:50.994140+00:00",
+  "frozen_at": "2026-09-04T04:20:28.093635+00:00",
   "mask_audit_gate": {
     "path": "notes/mask_audit/audit_decision.md",
     "reason": "No human mask-audit decision file is present in the repository.",
