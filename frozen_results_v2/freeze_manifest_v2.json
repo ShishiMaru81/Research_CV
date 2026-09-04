@@ -31,28 +31,34 @@
     "sam_mask_quality.csv: 5419 unique image paths match the v1 manifest",
     "sam_mask_quality.csv: mask fractions and component counts are valid",
     "sam_leaf: mask-quality artifact is present",
+    "hsv_mask_quality.csv: 5419 unique image paths match the v1 manifest",
+    "hsv_mask_quality.csv: mask fractions and component counts are valid",
+    "hsv_leaf: mask-quality artifact is present",
     "crossdataset_matrix_masked_sam_leaf.csv: 18/18 exact masked-transfer keys",
+    "crossdataset_matrix_masked_hsv_leaf.csv: 18/18 exact masked-transfer keys",
     "All specified arithmetic checks passed without filtering rows"
   ],
-  "frozen_at": "2026-09-04T04:20:28.093635+00:00",
+  "frozen_at": "2026-09-04T13:09:55.748272+00:00",
   "mask_audit_gate": {
     "path": "notes/mask_audit/audit_decision.md",
-    "reason": "No human mask-audit decision file is present in the repository.",
-    "status": "unverified_missing"
+    "reason": "Human audit decision explicitly clears sam_leaf and hsv_leaf for Week 13.",
+    "status": "verified"
   },
   "schema_version": 2,
-  "status": "PASS_WITH_UNVERIFIED_MASK_GATE",
+  "status": "PASS",
   "summary": {
-    "csv_files": 26,
-    "total_csv_rows": 11327,
+    "csv_files": 28,
+    "total_csv_rows": 16764,
     "week10_14_artifacts_present": [
       "adabn_labelshift.csv",
       "adabn_results.csv",
+      "crossdataset_matrix_masked_hsv_leaf.csv",
       "crossdataset_matrix_masked_sam_leaf.csv",
       "deployment_profile.csv",
       "dinov2_crossdataset.csv",
       "dinov2_indataset.csv",
       "gradcam_negative_summary.csv",
+      "hsv_mask_quality.csv",
       "sam_mask_quality.csv"
     ]
   },
@@ -122,11 +128,11 @@
     "crossdataset_masked_pairs": {
       "conditions": {
         "hsv_leaf": {
-          "expected": 0,
+          "expected": 18,
           "extra": [],
-          "found": 0,
+          "found": 18,
           "missing": [],
-          "status": "not_run"
+          "status": "complete"
         },
         "sam_leaf": {
           "expected": 18,
@@ -136,9 +142,9 @@
           "status": "complete"
         }
       },
-      "expected": 18,
+      "expected": 36,
       "extra": [],
-      "found": 18,
+      "found": 36,
       "missing": []
     }
   },
@@ -197,6 +203,14 @@
       "rows": 18,
       "sha256": "f653bee2ec0a17d14f04d4079bc9d8f4b793ca930aae50cab5221c0b3fde7dc5",
       "source": "frozen_results/crossdataset_matrix_aug.csv",
+      "status": "AUDITED"
+    },
+    "crossdataset_matrix_masked_hsv_leaf.csv": {
+      "columns": 10,
+      "expected": "optional_present",
+      "rows": 18,
+      "sha256": "8315568740d835ab8340ebaf138e7da25df266944e5f4316c83c2feaea045cfd",
+      "source": "crossdataset_matrix_masked_hsv_leaf.csv",
       "status": "AUDITED"
     },
     "crossdataset_matrix_masked_sam_leaf.csv": {
@@ -259,6 +273,14 @@
       "rows": 12,
       "sha256": "e96f34b27841b92f3cb78a85b55d7854d8532bf3eb24d1a3ee4af8674f1a104b",
       "source": "frozen_results/gradcam_records.csv",
+      "status": "AUDITED"
+    },
+    "hsv_mask_quality.csv": {
+      "columns": 5,
+      "expected": "optional_present",
+      "rows": 5419,
+      "sha256": "81283753cd759c67598e5efd108ac81d7e7c761df9c862c9dd805bf7a431fe04",
+      "source": "hsv_mask_quality.csv",
       "status": "AUDITED"
     },
     "indataset_results.csv": {

@@ -92,6 +92,36 @@ def _find_source_root(input_root: Path, condition: str) -> Path:
     )
 
 
+def _dataset_source_roots(source_root: Path) -> dict[str, Path]:
+    roots: dict[str, Path] = {}
+    for dataset in DATASETS:
+        direct = source_root / dataset
+        nested = direct / dataset
+        if nested.is_dir():
+            roots[dataset] = nested
+        elif direct.is_dir():
+            roots[dataset] = direct
+        else:
+            raise FileNotFoundError(
+                f"Could not find source folder for dataset={dataset} under {source_root}"
+            )
+    return roots
+
+
+def _source_for_relative_path(
+    rel: Path,
+    source_root: Path,
+    dataset_roots: dict[str, Path],
+) -> Path:
+    parts = rel.parts
+    if not parts:
+        raise ValueError(f"Empty relative path: {rel}")
+    dataset = parts[0]
+    if dataset not in dataset_roots:
+        return source_root / rel
+    return dataset_roots[dataset].joinpath(*parts[1:])
+
+
 def _copy_manifest_images(
     manifest: pd.DataFrame,
     source_root: Path,
@@ -103,12 +133,13 @@ def _copy_manifest_images(
     copied = 0
     already_present = 0
     missing: list[Path] = []
+    dataset_roots = _dataset_source_roots(source_root)
 
     for image_path in tqdm(
         manifest["image_path"].astype(str), total=len(manifest), desc="masked images"
     ):
         rel = _relative_under_raw(image_path)
-        src = source_root / rel
+        src = _source_for_relative_path(rel, source_root, dataset_roots)
         dst = dest_root / rel
         if not src.is_file():
             missing.append(src)
