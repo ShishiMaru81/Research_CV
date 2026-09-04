@@ -7,13 +7,14 @@ Writes data/masked/hsv_leaf/ and frozen_results_v2/hsv_mask_quality.csv.
 from __future__ import annotations
 
 import argparse
+import os
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
 from PIL import Image
 from scipy import ndimage
-from skimage.color import rgb2hsv
 from skimage.filters import threshold_otsu
 from tqdm import tqdm
 
@@ -65,9 +66,9 @@ def _component_stats(mask: np.ndarray) -> tuple[int, float]:
 
 def _mask_one(img_rgb: np.ndarray) -> tuple[np.ndarray, np.ndarray, bool]:
     """Return (masked_rgb, largest_mask, no_leaf_detected)."""
-    # HSV conversion retained for protocol completeness (leaf decision uses ExG).
-    _ = rgb2hsv(img_rgb.astype(np.float64) / 255.0)
-
+    # The protocol calls this the HSV/ExG control, but the prespecified leaf
+    # decision is ExG/Otsu.  Do not compute and discard an unused HSV tensor for
+    # every image: it adds substantial CPU time without changing the mask.
     r = img_rgb[:, :, 0].astype(np.float64)
     g = img_rgb[:, :, 1].astype(np.float64)
     b = img_rgb[:, :, 2].astype(np.float64)
@@ -96,6 +97,41 @@ def _mask_one(img_rgb: np.ndarray) -> tuple[np.ndarray, np.ndarray, bool]:
     return masked, largest_mask, False
 
 
+def _process_one(item: tuple[str, str]) -> tuple[dict, bool, str | None]:
+    """Process one manifest item; kept top-level so the worker is testable."""
+
+    image_path, dataset = item
+    src = ROOT / Path(image_path.replace("\\", "/"))
+    if not src.is_file():
+        return {}, False, image_path
+
+    rel = _relative_under_raw(image_path)
+    dst = OUT_DIR / rel
+    try:
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        with Image.open(src) as image:
+            img_rgb = np.asarray(image.convert("RGB"))
+        masked, leaf_mask, no_leaf = _mask_one(img_rgb)
+        Image.fromarray(masked).save(dst)
+    except Exception as exc:  # preserve all failures for the final audit summary
+        return {}, False, f"{image_path} ({type(exc).__name__}: {exc})"
+
+    n_comp, largest_frac = _component_stats(leaf_mask)
+    return (
+        {
+            "image_path": image_path,
+            "dataset": dataset,
+            "foreground_fraction": float(leaf_mask.sum() / leaf_mask.size)
+            if leaf_mask.size
+            else 0.0,
+            "n_components": n_comp,
+            "largest_component_fraction": largest_frac,
+        },
+        no_leaf,
+        None,
+    )
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -104,7 +140,15 @@ def main() -> None:
         default=None,
         help="Optional: process only the first N rows (smoke test).",
     )
+    parser.add_argument(
+        "--workers",
+        type=int,
+        default=min(8, os.cpu_count() or 1),
+        help="CPU worker threads (default: up to 8); use 1 for serial debugging.",
+    )
     args = parser.parse_args()
+    if args.workers <= 0:
+        raise ValueError(f"--workers must be positive, got {args.workers}")
 
     _set_seeds(SEED)
     df = _load_manifest()
@@ -122,39 +166,22 @@ def main() -> None:
     n_no_leaf = 0
     failures: list[str] = []
 
-    for _, row in tqdm(df.iterrows(), total=len(df), desc="HSV masks"):
-        image_path = str(row["image_path"])
-        src = ROOT / Path(str(image_path).replace("\\", "/"))
-        if not src.is_file():
-            failures.append(image_path)
-            continue
-
-        rel = _relative_under_raw(image_path)
-        dst = OUT_DIR / rel
-        dst.parent.mkdir(parents=True, exist_ok=True)
-
-        img = Image.open(src).convert("RGB")
-        img_rgb = np.asarray(img)
-        masked, leaf_mask, no_leaf = _mask_one(img_rgb)
-        if no_leaf:
-            n_no_leaf += 1
-
-        Image.fromarray(masked).save(dst)
-        n_comp, largest_frac = _component_stats(leaf_mask)
-        rows.append(
-            {
-                "image_path": image_path,
-                "dataset": row["dataset"],
-                "foreground_fraction": float(leaf_mask.sum() / leaf_mask.size)
-                if leaf_mask.size
-                else 0.0,
-                "n_components": n_comp,
-                "largest_component_fraction": largest_frac,
-            }
-        )
+    items = [
+        (str(row.image_path), str(row.dataset))
+        for row in df.itertuples(index=False)
+    ]
+    with ThreadPoolExecutor(max_workers=args.workers) as executor:
+        for record, no_leaf, failure in tqdm(
+            executor.map(_process_one, items), total=len(items), desc="HSV masks"
+        ):
+            if failure is not None:
+                failures.append(failure)
+                continue
+            rows.append(record)
+            n_no_leaf += int(no_leaf)
 
     quality = pd.DataFrame(rows)
-    quality.to_csv(OUT_CSV, index=False)
+    quality.to_csv(OUT_CSV, index=False, lineterminator="\n")
 
     print(f"\nSaved masks to {OUT_DIR}/")
     print(f"Processed: {len(quality)}, No-leaf-detected: {n_no_leaf}")
