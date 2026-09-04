@@ -64,3 +64,41 @@ Record after each successful freeze:
 > adds revision overlays with an explicit changelog. Independent numerical
 > recomputation checks are provided by
 > `python scripts/numerical_freeze_audit.py`.
+
+---
+
+## 2026-09-04 — Week 14 audit refresh
+
+This refresh extends the replacement freeze through Weeks 10–14 without
+modifying any file in `frozen_results/`.
+
+### Added artifacts
+
+- `dinov2_indataset.csv` and `dinov2_crossdataset.csv`
+- `sam_mask_quality.csv`
+- `crossdataset_matrix_masked_sam_leaf.csv`
+- `adabn_labelshift.csv`
+
+HSV mask-quality and masked-transfer artifacts were not present, so the audit
+records `hsv_leaf` as **not run** rather than manufacturing a result.
+
+### Audit changes
+
+- Replaced the former delete/copy/self-compare workflow with an audit that reads
+  the Week-8 manifest first and aborts on any v1 file-set or SHA-256 mismatch.
+- Inventories every CSV in the v2 directory, including the previously
+  unmanifested deployment and Grad-CAM summary tables.
+- Checks finite metric ranges and positive sample counts on every specified row.
+- Checks masked transfer completeness by the exact
+  `(train_dataset, test_dataset, model, classes, seed, condition)` key set, not
+  by row count alone.
+- Records 26 v2 CSVs (11,327 total rows) and 18/18 SAM masked-transfer keys.
+
+### AdaBN label-shift result
+
+The analysis mirrors the executed AdaBN run's target-**train** adaptation set.
+AdaBN deltas were negative in 13/18 cells, not uniformly negative. No tested
+label-prior divergence metric had a significant correlation in the predicted
+negative direction; the mechanism therefore remains unresolved. The report
+also flags repeated domain-pair predictors and the fact that BN-layer count is
+not a validated proxy for model depth.
