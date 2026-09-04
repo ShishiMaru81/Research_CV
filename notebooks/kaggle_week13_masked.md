@@ -57,34 +57,15 @@ data/masked/sam_leaf/brri_rice_disease_pest/...
 
 ```python
 from pathlib import Path
-import shutil
+
+print("Available Kaggle inputs:")
+for path in sorted(Path("/kaggle/input").glob("*")):
+    print(" ", path)
 
 CONDITION = "sam_leaf"  # or hsv_leaf — only if audit cleared it
 MASKED_INPUT = Path(f"/kaggle/input/your-masked-{CONDITION}")  # <-- edit
-dest = Path(f"data/masked/{CONDITION}")
-dest.mkdir(parents=True, exist_ok=True)
 
-# If the upload is already the tree under sam_leaf/, copy contents in.
-src = MASKED_INPUT
-if (MASKED_INPUT / "riceleafbd").exists():
-    src = MASKED_INPUT
-elif (MASKED_INPUT / CONDITION / "riceleafbd").exists():
-    src = MASKED_INPUT / CONDITION
-else:
-    raise FileNotFoundError(f"Cannot find dataset folders under {MASKED_INPUT}")
-
-for name in ("riceleafbd", "dhan_shomadhan", "brri_rice_disease_pest"):
-    s = src / name
-    d = dest / name
-    if not s.exists():
-        raise FileNotFoundError(s)
-    if d.exists():
-        print("exists", d)
-    else:
-        shutil.copytree(s, d)
-        print("copied", name)
-
-print("files:", sum(1 for _ in dest.rglob("*") if _.is_file()))
+!python scripts/import_masked_images.py --condition {CONDITION} --input-root "{MASKED_INPUT}"
 ```
 
 ## Cell 3 — Frozen manifest into working tree
