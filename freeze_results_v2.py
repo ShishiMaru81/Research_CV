@@ -803,16 +803,46 @@ def _inventory_auxiliary(v2_dir: Path) -> dict[str, dict[str, Any]]:
 
 def _mask_audit_gate_status() -> dict[str, str]:
     decision_path = ROOT / "notes" / "mask_audit" / "audit_decision.md"
+    relative_path = "notes/mask_audit/audit_decision.md"
     if not decision_path.is_file():
         return {
             "status": "unverified_missing",
-            "path": "notes/mask_audit/audit_decision.md",
+            "path": relative_path,
             "reason": "No human mask-audit decision file is present in the repository.",
+        }
+    decision_text = decision_path.read_text(encoding="utf-8")
+    cleared_line = next(
+        (
+            line
+            for line in decision_text.splitlines()
+            if line.startswith("**Variants cleared for Week 13:**")
+        ),
+        "",
+    )
+    cleared_variants = {
+        variant.strip()
+        for variant in cleared_line.removeprefix(
+            "**Variants cleared for Week 13:**"
+        ).split(",")
+        if variant.strip()
+    }
+    required_variants = {"sam_leaf", "hsv_leaf"}
+    if required_variants.issubset(cleared_variants):
+        return {
+            "status": "verified",
+            "path": relative_path,
+            "reason": (
+                "Human audit decision explicitly clears sam_leaf and hsv_leaf "
+                "for Week 13."
+            ),
         }
     return {
         "status": "unverified_present",
-        "path": "notes/mask_audit/audit_decision.md",
-        "reason": "A decision file exists but this numerical freeze does not interpret its verdict.",
+        "path": relative_path,
+        "reason": (
+            "A decision file exists, but it does not explicitly clear both "
+            "sam_leaf and hsv_leaf for Week 13."
+        ),
     }
 
 
@@ -884,21 +914,34 @@ def _render_report(manifest: dict[str, Any]) -> str:
             "",
             *[f"- {check}: PASS" for check in manifest["checks_passed"]],
             "",
+        ]
+    )
+    gate = manifest["mask_audit_gate"]
+    if gate["status"] == "verified":
+        decision = (
+            "All implemented numerical and integrity checks pass. The saved v2 "
+            "artifacts are internally consistent, and the human mask-audit gate "
+            "is verified by the supplied decision record."
+        )
+    else:
+        decision = (
+            "All implemented numerical and integrity checks pass. The saved v2 "
+            "artifacts are internally consistent. The human mask-audit gate is "
+            "not verified by this repository state, so masked results must not "
+            "be described as audit-cleared until its decision record is supplied."
+        )
+    lines.extend(
+        [
             "## Interpretation Guardrails",
             "",
             "- The audit verifies saved-file integrity, arithmetic ranges, and key coverage; it is not an independent model re-run.",
             "- Presence of a mask artifact does not by itself reconstruct a missing human audit verdict.",
             "- The AdaBN label-shift analysis is observational and does not establish causality.",
-            f"- Human mask-audit gate: **{manifest['mask_audit_gate']['status']}** ({manifest['mask_audit_gate']['reason']})",
+            f"- Human mask-audit gate: **{gate['status']}** ({gate['reason']})",
             "",
             "## Decision",
             "",
-            (
-                "All implemented numerical and integrity checks pass. The saved v2 artifacts "
-                "are internally consistent. The human mask-audit gate is not verified by this "
-                "repository state, so masked results must not be described as audit-cleared "
-                "until its decision record is supplied."
-            ),
+            decision,
             "",
         ]
     )
@@ -994,7 +1037,10 @@ def audit_and_freeze(
     print("PASS: arithmetic consistency for every audited row")
     print(f"Freeze manifest: {manifest_path}")
     print(f"Audit report: {report_path}")
-    print("FINAL STATUS: NUMERICAL FREEZE PASS; HUMAN MASK-AUDIT GATE UNVERIFIED")
+    if gate["status"] == "verified":
+        print("FINAL STATUS: NUMERICAL FREEZE PASS; HUMAN MASK-AUDIT GATE VERIFIED")
+    else:
+        print("FINAL STATUS: NUMERICAL FREEZE PASS; HUMAN MASK-AUDIT GATE UNVERIFIED")
     return manifest
 
 

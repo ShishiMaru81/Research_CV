@@ -1,6 +1,6 @@
 # Week 10-14 Audit Report
 
-Frozen at: `2026-09-04T04:20:28.093635+00:00`
+Frozen at: `2026-09-04T13:09:55.748272+00:00`
 
 ## v1 Integrity
 
@@ -15,6 +15,7 @@ All 11 CSVs in `frozen_results/` match the Week-8 SHA-256 manifest: **PASS**
 - `bootstrap_ci.csv` (19 rows x 6 columns): HASHED
 - `crossdataset_matrix.csv` (18 rows x 9 columns): AUDITED
 - `crossdataset_matrix_aug.csv` (18 rows x 10 columns): AUDITED
+- `crossdataset_matrix_masked_hsv_leaf.csv` (18 rows x 10 columns): AUDITED
 - `crossdataset_matrix_masked_sam_leaf.csv` (18 rows x 10 columns): AUDITED
 - `deployment_profile.csv` (3 rows x 7 columns): AUDITED
 - `dinov2_crossdataset.csv` (18 rows x 10 columns): AUDITED
@@ -23,6 +24,7 @@ All 11 CSVs in `frozen_results/` match the Week-8 SHA-256 manifest: **PASS**
 - `generalization_gap_aug.csv` (18 rows x 14 columns): AUDITED
 - `gradcam_negative_summary.csv` (19 rows x 2 columns): AUDITED
 - `gradcam_records.csv` (12 rows x 11 columns): AUDITED
+- `hsv_mask_quality.csv` (5419 rows x 5 columns): AUDITED
 - `indataset_results.csv` (9 rows x 7 columns): AUDITED
 - `lodo_all_seeds.csv` (27 rows x 5 columns): HASHED
 - `lodo_results.csv` (9 rows x 11 columns): AUDITED
@@ -42,8 +44,8 @@ All 11 CSVs in `frozen_results/` match the Week-8 SHA-256 manifest: **PASS**
 ## v2 Completeness
 
 - `sam_leaf`: 18/18 exact pair/model/seed/class keys: PASS
-- `hsv_leaf`: not run; no artifacts frozen (optional).
-- All present masked conditions: 18/18 keys: PASS
+- `hsv_leaf`: 18/18 exact pair/model/seed/class keys: PASS
+- All present masked conditions: 36/36 keys: PASS
 
 ## Consistency Checks
 
@@ -71,7 +73,11 @@ All 11 CSVs in `frozen_results/` match the Week-8 SHA-256 manifest: **PASS**
 - sam_mask_quality.csv: 5419 unique image paths match the v1 manifest: PASS
 - sam_mask_quality.csv: mask fractions and component counts are valid: PASS
 - sam_leaf: mask-quality artifact is present: PASS
+- hsv_mask_quality.csv: 5419 unique image paths match the v1 manifest: PASS
+- hsv_mask_quality.csv: mask fractions and component counts are valid: PASS
+- hsv_leaf: mask-quality artifact is present: PASS
 - crossdataset_matrix_masked_sam_leaf.csv: 18/18 exact masked-transfer keys: PASS
+- crossdataset_matrix_masked_hsv_leaf.csv: 18/18 exact masked-transfer keys: PASS
 - All specified arithmetic checks passed without filtering rows: PASS
 
 ## Interpretation Guardrails
@@ -79,8 +85,8 @@ All 11 CSVs in `frozen_results/` match the Week-8 SHA-256 manifest: **PASS**
 - The audit verifies saved-file integrity, arithmetic ranges, and key coverage; it is not an independent model re-run.
 - Presence of a mask artifact does not by itself reconstruct a missing human audit verdict.
 - The AdaBN label-shift analysis is observational and does not establish causality.
-- Human mask-audit gate: **unverified_missing** (No human mask-audit decision file is present in the repository.)
+- Human mask-audit gate: **verified** (Human audit decision explicitly clears sam_leaf and hsv_leaf for Week 13.)
 
 ## Decision
 
-All implemented numerical and integrity checks pass. The saved v2 artifacts are internally consistent. The human mask-audit gate is not verified by this repository state, so masked results must not be described as audit-cleared until its decision record is supplied.
+All implemented numerical and integrity checks pass. The saved v2 artifacts are internally consistent, and the human mask-audit gate is verified by the supplied decision record.
