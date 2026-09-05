@@ -162,6 +162,29 @@ Scope (budgeted): **ResNet50 × 6 transfer pairs × seed 42** (18 runs). ResNet5
 
 Week 5–7 publication CSVs were frozen under `frozen_results/` after checks against per-run metrics JSON files, gap arithmetic, and re-derived mitigation tables (`python -m freeze_results`; 23 checks in `audit_report.md`). Recorded digests, not the obsolete git SHA stamped at freeze time, are the integrity ground truth after a later history rewrite that removed Cursor co-author trailers (`notes/missing_commit_investigation.md`). Figures and LaTeX/CSV tables are regenerated deterministically (`python -m make_figures`). AdaBN numbers (§5.6) are archived under `week12_results/adabn/` and `paper/tables/table_adabn.csv`.
 
+### 4.9 Disclosure of AI assistance
+
+Large language model assistants (Anthropic Claude, used through Claude Code and Cursor) were
+used throughout this project for code authoring and review, analysis and figure scripting,
+audit tooling, and manuscript drafting and copy-editing; the repository carries this standing
+context in `CLAUDE.md` / `.cursorrules`. No experimental result was produced by a language
+model. All reported metrics are computed by the versioned training and evaluation code in this
+repository from the frozen splits, and every headline number is recomputed from the released
+CSVs by `python scripts/numerical_freeze_audit.py` (12 checks) and `python
+scripts/audit_writing.py` (22 checks). The author designed the study, ran the experiments, and
+takes full responsibility for the content and for every claim made here.
+
+Data, code, and reproducibility artifacts:
+
+- Zenodo (preprint and archived artifacts): https://doi.org/10.5281/zenodo.21787018
+- GitHub: https://github.com/ShishiMaru81/Research_CV
+
+Model checkpoints are **not** included. They were produced on Kaggle and local GPUs and were
+not archived to persistent storage (`notes/kaggle_checkpoint_verification.md`). Reported
+metrics and the split manifest are therefore reproducible from code, but exact re-scoring of
+stored predictions is limited to the 19 runs whose per-sample prediction CSVs survive
+(§5.8, §7).
+
 ---
 
 ## 5. Results
@@ -279,6 +302,37 @@ Bootstrap 95% CIs for per-run macro-F1 are computed from full prediction CSVs wh
 **AdaBN is likewise an honest weak/negative baseline.** Recalibrating BatchNorm statistics on unlabeled target-train images fails on average (mean Δ −0.055; only 5/18 pairs improve) and never helps ResNet50. If domain shift were primarily a matter of mismatched BN appearance statistics, AdaBN should have recovered a substantial fraction of the gap. The observed pattern instead suggests that cross-dataset failure on this benchmark is not reducible to BatchNorm covariate shift alone—or that source features after standard fine-tuning do not transfer under BN recalibration. Together with LODO, AdaBN strengthens the ranking that **train-time strong augmentation remains the best of the three simple interventions** we tested.
 
 **Practical implication.** For Bangladeshi rice disease tools that may see images from multiple collections, practitioners should (i) measure cross-dataset transfer explicitly, (ii) treat background/acquisition as a risk factor, and (iii) prefer aggressive train-time augmentation before assuming that pooling datasets or lightweight BN adaptation will fix generalization.
+
+### 6.1 Future work: testing background dependence causally
+
+Both strands of our background evidence are **associational**. The confound experiment
+(§5.3) varies the evaluation set rather than the image content, and the bucket ablation
+(§5.7) shows that geometric/background randomization is the largest single contributor to
+the augmentation gain (Δ +0.085 of +0.127 on six ResNet50 pairs) without isolating
+background as the manipulated variable. Two experiments would convert this into a causal
+test, and we flag them as the natural next phase rather than as results:
+
+**Experiment A — background substitution.** Segment leaf and lesion regions from a
+class-balanced sample of field images and composite them onto (i) a uniform white
+background and (ii) a resampled field background, holding the foreground fixed. Evaluating
+a fixed source-trained checkpoint across the resulting matched sets varies background while
+holding lesion content constant, which the present design cannot do. Recovering the
+white > field ordering of §5.3 under substitution would implicate background causally;
+failing to recover it would indicate that the §5.3 ordering reflects correlated acquisition
+differences (camera, focal distance, capture protocol) rather than background alone.
+
+**Experiment B — background-targeted augmentation.** Compare the geometric bucket against
+an augmentation that explicitly randomizes background while leaving the leaf region
+untouched, using the segmentation masks from Experiment A. Because the geometric bucket
+also perturbs scale, translation, and framing, it does not separate background
+randomization from general spatial invariance; a background-only arm would. We state no
+expected effect size: the ablation constrains which mechanism is *largest*, not how much
+of the residual gap a targeted intervention could close.
+
+Both experiments require segmentation masks that the current corpus does not include, and
+Experiment A additionally assumes segmentation quality sufficient not to introduce its own
+artifacts — a confound that would need its own control.
+
 
 ---
 

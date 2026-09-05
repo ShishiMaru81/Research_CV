@@ -5,7 +5,9 @@
 **Paper:** Cross-Dataset Generalization of Bangladeshi Rice Leaf Disease Classifiers:
 Benchmark, Diagnosis, and Mitigation
 **Preprint DOI:** 10.5281/zenodo.21787018
-**Status:** Submitted; post-submission correction pass complete
+**Status:** NOT submitted. Camera-ready pass complete; venue still open (see §8).
+Corrected 2026-08-28: the previous "Submitted" line was stale and was the premise
+behind two task briefs that proposed a second, concurrent submission.
 
 > **Place this file at the repo root as `CLAUDE.md` (Claude Code) or `.cursorrules`
 > (Cursor) so it loads automatically as standing context.**
