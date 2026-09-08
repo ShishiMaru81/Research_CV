@@ -11,3 +11,24 @@ __pycache__/
 *.pt
 *.bin
 *.onnx
+.venv*/
+.venv_transfer/
+Sam_leaf/
+kaggle_download/
+kaggle_upload/
+logs/
+_week13_masked_results_staging_*/
+*.zip
+# Root-level download duplicates (authoritative copies live under frozen_results_v2/)
+/augmentation_ablation.csv
+/crossdataset_matrix_aug.csv
+/crossdataset_matrix_bucket_geo.csv
+/crossdataset_matrix_masked_sam_leaf.csv
+/dinov2_crossdataset.csv
+/dinov2_indataset.csv
+/generalization_gap_aug.csv
+/generalization_gap_bucket_geo.csv
+/kaggle_manifest.csv
+/run_registry (1).csv
+/sam_mask_quality.csv
+/sam_mask_quality (1).csv
