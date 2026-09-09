@@ -102,3 +102,25 @@ label-prior divergence metric had a significant correlation in the predicted
 negative direction; the mechanism therefore remains unresolved. The report
 also flags repeated domain-pair predictors and the fact that BN-layer count is
 not a validated proxy for model depth.
+
+---
+
+## 2026-09-09 — SAM masked seed-2024 extension
+
+This refresh adds:
+
+- `crossdataset_matrix_masked_sam_leaf_seed2024.csv` (18 cells)
+- `masked_summary_sam_leaf.csv` (one runtime-computed summary row)
+- `env_seed2024.json` (Kaggle software and accelerator environment)
+- `scripts/build_masked_summary_sam_leaf.py` (summary generator)
+
+The summary generator pairs each masked matrix with the `default` raw transfer
+rows at the same train seed in `transfer_all_seeds.csv`. It computes all
+aggregate metrics and the pooled Wilcoxon result at runtime; no result is
+embedded in source code.
+
+The freeze audit now verifies that the seed-2024 matrix has the same schema,
+transfer cells, classes, and evaluation populations as the seed-42 matrix. It
+also independently recomputes every field in the two-seed summary. The refresh
+records 30 CSVs (16,783 rows), 36/36 primary masked-condition cells, and ends
+with `NUMERICAL FREEZE PASS; HUMAN MASK-AUDIT GATE VERIFIED`.
