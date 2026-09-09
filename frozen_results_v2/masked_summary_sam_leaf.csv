@@ -1,0 +1,2 @@
+condition,n_seeds,n_pairs,mean_cross_macro_f1,std_cross_macro_f1,mean_paired_delta,median_paired_delta,wilcoxon_statistic,wilcoxon_p,n_positive
+sam_leaf,2,36,0.5102726027429441,0.15367550305975639,0.06610844429681391,0.06932886975260338,214.0,0.062117590656271204,21

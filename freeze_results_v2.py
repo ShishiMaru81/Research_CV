@@ -23,6 +23,7 @@ from typing import Any, Iterable, Sequence
 
 import numpy as np
 import pandas as pd
+from scipy.stats import wilcoxon
 
 
 ROOT = Path(__file__).resolve().parent
@@ -45,6 +46,8 @@ BASE_REQUIRED_WEEK10_14 = {
 OPTIONAL_WEEK10_14 = {
     "hsv_mask_quality.csv",
     "crossdataset_matrix_masked_hsv_leaf.csv",
+    "crossdataset_matrix_masked_sam_leaf_seed2024.csv",
+    "masked_summary_sam_leaf.csv",
 }
 MASK_CONDITIONS = {
     "sam_leaf": ("sam_mask_quality.csv", "crossdataset_matrix_masked_sam_leaf.csv"),
@@ -65,6 +68,10 @@ KNOWN_SOURCES = {
     "sam_mask_quality.csv": "sam_mask_quality.csv",
     "hsv_mask_quality.csv": "hsv_mask_quality.csv",
     "crossdataset_matrix_masked_sam_leaf.csv": "crossdataset_matrix_masked_sam_leaf.csv",
+    "crossdataset_matrix_masked_sam_leaf_seed2024.csv": (
+        "crossdataset_matrix_masked_sam_leaf_seed2024.csv"
+    ),
+    "masked_summary_sam_leaf.csv": "scripts/build_masked_summary_sam_leaf.py",
     "crossdataset_matrix_masked_hsv_leaf.csv": "crossdataset_matrix_masked_hsv_leaf.csv",
     "adabn_labelshift.csv": "week14_results/adabn_labelshift.csv",
 }
@@ -677,6 +684,133 @@ def _validate_masked_completeness(
     return completeness, checks
 
 
+def _validate_sam_multiseed(
+    frames: dict[str, pd.DataFrame], baseline: pd.DataFrame
+) -> list[str]:
+    """Validate the added seed-2024 matrix and its computed two-seed summary."""
+
+    matrix_name = "crossdataset_matrix_masked_sam_leaf_seed2024.csv"
+    summary_name = "masked_summary_sam_leaf.csv"
+    if matrix_name not in frames and summary_name not in frames:
+        return []
+    if matrix_name not in frames or summary_name not in frames:
+        raise FreezeError(
+            "SAM multiseed freeze requires both the seed-2024 matrix and summary."
+        )
+
+    seed42 = frames["crossdataset_matrix_masked_sam_leaf.csv"]
+    seed2024 = frames[matrix_name]
+    schema = list(seed42.columns)
+    if list(seed2024.columns) != schema:
+        raise FreezeError(
+            f"{matrix_name} header differs from the seed-42 masked matrix."
+        )
+
+    required = set(MASKED_KEY_COLUMNS) | {
+        "condition",
+        "accuracy",
+        "macro_f1",
+        "n_samples",
+    }
+    _require_columns(seed2024, required, matrix_name)
+    if set(pd.to_numeric(seed2024["seed"], errors="raise")) != {2024}:
+        raise FreezeError(f"{matrix_name}.seed must contain only 2024.")
+    if set(seed2024["condition"].astype(str)) != {"sam_leaf"}:
+        raise FreezeError(f"{matrix_name}.condition must contain only sam_leaf.")
+    if len(seed2024) != len(seed42):
+        raise FreezeError(
+            f"{matrix_name} has {len(seed2024)} rows; seed-42 matrix has {len(seed42)}."
+        )
+    if _duplicate_examples(seed2024, MASKED_KEY_COLUMNS + ["condition"]):
+        raise FreezeError(f"{matrix_name} has duplicate experiment keys.")
+    _check_range(seed2024, ["accuracy", "macro_f1"], matrix_name)
+    _check_positive_integer(seed2024, "n_samples", matrix_name)
+
+    masked_identity_columns = [
+        "train_dataset",
+        "test_dataset",
+        "model",
+        "classes",
+    ]
+    paired_key_columns = ["train_dataset", "test_dataset", "model"]
+    expected = seed42.set_index(masked_identity_columns)["n_samples"].sort_index()
+    actual = seed2024.set_index(masked_identity_columns)["n_samples"].sort_index()
+    if not expected.index.equals(actual.index):
+        raise FreezeError(f"{matrix_name} experiment keys differ from seed 42.")
+    if not np.array_equal(
+        pd.to_numeric(expected, errors="raise").to_numpy(),
+        pd.to_numeric(actual, errors="raise").to_numpy(),
+    ):
+        raise FreezeError(f"{matrix_name}.n_samples differs from seed 42.")
+
+    transfer = frames.get("transfer_all_seeds.csv")
+    if transfer is None:
+        raise FreezeError("transfer_all_seeds.csv is required for paired summary.")
+    _require_columns(
+        transfer,
+        set(paired_key_columns) | {"seed", "augmentation", "cross_macro_f1"},
+        "transfer_all_seeds.csv",
+    )
+
+    paired_parts: list[pd.DataFrame] = []
+    for masked in (seed42, seed2024):
+        seed_values = pd.to_numeric(masked["seed"], errors="raise").unique()
+        if len(seed_values) != 1:
+            raise FreezeError("Each SAM masked matrix must contain one seed.")
+        seed = int(seed_values[0])
+        raw = transfer[
+            (pd.to_numeric(transfer["seed"], errors="raise") == seed)
+            & (transfer["augmentation"].astype(str) == "default")
+        ]
+        paired = raw[paired_key_columns + ["cross_macro_f1"]].merge(
+            masked[paired_key_columns + ["macro_f1"]],
+            on=paired_key_columns,
+            how="inner",
+            validate="one_to_one",
+        )
+        if len(paired) != len(masked):
+            raise FreezeError(
+                f"Seed {seed} raw/masked pairing matched {len(paired)}/{len(masked)}."
+            )
+        paired["delta"] = paired["macro_f1"] - paired["cross_macro_f1"]
+        paired_parts.append(paired)
+
+    pool = pd.concat(paired_parts, ignore_index=True)
+    statistic, p_value = wilcoxon(pool["delta"])
+    computed = {
+        "condition": "sam_leaf",
+        "n_seeds": len(paired_parts),
+        "n_pairs": len(pool),
+        "mean_cross_macro_f1": pool["macro_f1"].mean(),
+        "std_cross_macro_f1": pool["macro_f1"].std(),
+        "mean_paired_delta": pool["delta"].mean(),
+        "median_paired_delta": pool["delta"].median(),
+        "wilcoxon_statistic": statistic,
+        "wilcoxon_p": p_value,
+        "n_positive": int((pool["delta"] > 0).sum()),
+    }
+    summary = frames[summary_name]
+    if len(summary) != 1:
+        raise FreezeError(f"{summary_name} must contain exactly one row.")
+    if list(summary.columns) != list(computed):
+        raise FreezeError(
+            f"{summary_name} columns differ from the computed summary schema."
+        )
+    row = summary.iloc[0]
+    for column, expected_value in computed.items():
+        actual_value = row[column]
+        if isinstance(expected_value, str):
+            if str(actual_value) != expected_value:
+                raise FreezeError(f"{summary_name}.{column} does not recompute.")
+        elif not np.isclose(float(actual_value), float(expected_value), rtol=0, atol=1e-12):
+            raise FreezeError(f"{summary_name}.{column} does not recompute.")
+
+    return [
+        f"{matrix_name}: schema, keys, ranges, and evaluation populations verified",
+        f"{summary_name}: all fields recomputed from two seed-matched matrices",
+    ]
+
+
 def _validate_v2_core_against_v1(
     v2_dir: Path, frames: dict[str, pd.DataFrame], v1_integrity: dict[str, Any]
 ) -> list[str]:
@@ -727,6 +861,7 @@ def validate_v2(
             checks.append(f"{condition}: mask-quality artifact is present")
     completeness, completeness_checks = _validate_masked_completeness(frames, baseline)
     checks.extend(completeness_checks)
+    checks.extend(_validate_sam_multiseed(frames, baseline))
     checks.append("All specified arithmetic checks passed without filtering rows")
     return completeness, checks, expected_present
 

@@ -5,6 +5,7 @@ results_masked/
 frozen_results_v2/*.npz
 dist/
 __pycache__/
+.pytest_tmp*/
 *.pth
 *.pyc
 .DS_Store

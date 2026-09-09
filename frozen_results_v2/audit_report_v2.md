@@ -1,6 +1,6 @@
 # Week 10-14 Audit Report
 
-Frozen at: `2026-09-04T13:09:55.748272+00:00`
+Frozen at: `2026-09-09T03:50:39.541294+00:00`
 
 ## v1 Integrity
 
@@ -17,6 +17,7 @@ All 11 CSVs in `frozen_results/` match the Week-8 SHA-256 manifest: **PASS**
 - `crossdataset_matrix_aug.csv` (18 rows x 10 columns): AUDITED
 - `crossdataset_matrix_masked_hsv_leaf.csv` (18 rows x 10 columns): AUDITED
 - `crossdataset_matrix_masked_sam_leaf.csv` (18 rows x 10 columns): AUDITED
+- `crossdataset_matrix_masked_sam_leaf_seed2024.csv` (18 rows x 10 columns): HASHED
 - `deployment_profile.csv` (3 rows x 7 columns): AUDITED
 - `dinov2_crossdataset.csv` (18 rows x 10 columns): AUDITED
 - `dinov2_indataset.csv` (9 rows x 8 columns): AUDITED
@@ -29,6 +30,7 @@ All 11 CSVs in `frozen_results/` match the Week-8 SHA-256 manifest: **PASS**
 - `lodo_all_seeds.csv` (27 rows x 5 columns): HASHED
 - `lodo_results.csv` (9 rows x 11 columns): AUDITED
 - `manifest.csv` (5419 rows x 7 columns): AUDITED
+- `masked_summary_sam_leaf.csv` (1 rows x 10 columns): HASHED
 - `mitigation_comparison.csv` (9 rows x 7 columns): AUDITED
 - `mitigation_pairwise_aug.csv` (18 rows x 11 columns): AUDITED
 - `sam_mask_quality.csv` (5419 rows x 6 columns): AUDITED
@@ -40,6 +42,7 @@ All 11 CSVs in `frozen_results/` match the Week-8 SHA-256 manifest: **PASS**
 ### Auxiliary non-CSV artifacts
 
 - `deployment_env.json` (286 bytes): HASHED
+- `env_seed2024.json` (363 bytes): HASHED
 
 ## v2 Completeness
 
@@ -78,6 +81,8 @@ All 11 CSVs in `frozen_results/` match the Week-8 SHA-256 manifest: **PASS**
 - hsv_leaf: mask-quality artifact is present: PASS
 - crossdataset_matrix_masked_sam_leaf.csv: 18/18 exact masked-transfer keys: PASS
 - crossdataset_matrix_masked_hsv_leaf.csv: 18/18 exact masked-transfer keys: PASS
+- crossdataset_matrix_masked_sam_leaf_seed2024.csv: schema, keys, ranges, and evaluation populations verified: PASS
+- masked_summary_sam_leaf.csv: all fields recomputed from two seed-matched matrices: PASS
 - All specified arithmetic checks passed without filtering rows: PASS
 
 ## Interpretation Guardrails

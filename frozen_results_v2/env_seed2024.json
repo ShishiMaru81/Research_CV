@@ -1,0 +1,12 @@
+{
+  "seed": 2024,
+  "condition": "sam_leaf",
+  "torch_version": "2.10.0+cu128",
+  "timm_version": "1.0.26",
+  "cuda_available": true,
+  "cuda_version": "12.8",
+  "gpu_name": "Tesla T4",
+  "device": "cuda",
+  "manifest_path": "/kaggle/input/datasets/happychamp/manifest-csv/manifest.csv",
+  "masked_root": "/kaggle/input/datasets/happychamp/sam-leaf-upload-zip"
+}

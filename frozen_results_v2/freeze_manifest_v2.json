@@ -4,6 +4,11 @@
       "bytes": 286,
       "sha256": "9fa7f879ca23e87ead78d0b0dd860a397d3298fc33bbd7596dd73402532e34f5",
       "status": "PASS"
+    },
+    "env_seed2024.json": {
+      "bytes": 363,
+      "sha256": "4ec345c1ae6deb9059a08a8a06b6e1294bd16f5e71c636804fe5ddc1604e7c78",
+      "status": "PASS"
     }
   },
   "checks_passed": [
@@ -36,9 +41,11 @@
     "hsv_leaf: mask-quality artifact is present",
     "crossdataset_matrix_masked_sam_leaf.csv: 18/18 exact masked-transfer keys",
     "crossdataset_matrix_masked_hsv_leaf.csv: 18/18 exact masked-transfer keys",
+    "crossdataset_matrix_masked_sam_leaf_seed2024.csv: schema, keys, ranges, and evaluation populations verified",
+    "masked_summary_sam_leaf.csv: all fields recomputed from two seed-matched matrices",
     "All specified arithmetic checks passed without filtering rows"
   ],
-  "frozen_at": "2026-09-04T13:09:55.748272+00:00",
+  "frozen_at": "2026-09-09T03:50:39.541294+00:00",
   "mask_audit_gate": {
     "path": "notes/mask_audit/audit_decision.md",
     "reason": "Human audit decision explicitly clears sam_leaf and hsv_leaf for Week 13.",
@@ -47,8 +54,8 @@
   "schema_version": 2,
   "status": "PASS",
   "summary": {
-    "csv_files": 28,
-    "total_csv_rows": 16764,
+    "csv_files": 30,
+    "total_csv_rows": 16783,
     "week10_14_artifacts_present": [
       "adabn_labelshift.csv",
       "adabn_results.csv",
@@ -221,6 +228,14 @@
       "source": "crossdataset_matrix_masked_sam_leaf.csv",
       "status": "AUDITED"
     },
+    "crossdataset_matrix_masked_sam_leaf_seed2024.csv": {
+      "columns": 10,
+      "expected": "optional_present",
+      "rows": 18,
+      "sha256": "ed05a0abdb603818a085406ced69828fe9753b299e2465e4770947d2d9a36787",
+      "source": "crossdataset_matrix_masked_sam_leaf_seed2024.csv",
+      "status": "HASHED"
+    },
     "deployment_profile.csv": {
       "columns": 7,
       "expected": "required",
@@ -314,6 +329,14 @@
       "sha256": "3a1a981ae73cded5b7dc46f6a3e479594c6d7a71af78e6779f3b3339a8c81466",
       "source": "frozen_results/manifest.csv",
       "status": "AUDITED"
+    },
+    "masked_summary_sam_leaf.csv": {
+      "columns": 10,
+      "expected": "optional_present",
+      "rows": 1,
+      "sha256": "7d4e96dc13b0449a5602bc3cb6e407457cc1a416460e7a4d3e33bac9ae2e32b1",
+      "source": "scripts/build_masked_summary_sam_leaf.py",
+      "status": "HASHED"
     },
     "mitigation_comparison.csv": {
       "columns": 7,
